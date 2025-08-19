@@ -1,0 +1,24 @@
+{
+  "name": "attendance-system",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Attendance system geofencing based for Dinas Ketahanan Pangan, Pertanian, dan Perikanan",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx nodemon app.js"
+  },
+  "author": "PiolaEvania, ZulfaAuliyaAkbar, RidhaniSetiadi",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.6.0",
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.17.0",
+    "nodemon": "^3.1.10"
+  }
+}
