@@ -10,9 +10,19 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8000;
+const cors = require('cors');
 
 app.use(express.json());
 app.set('trust proxy', true);
+app.use(cors({
+  origin: '',
+  method: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+app.get('/', (req, res) => {
+  res.send('Server is running...');
+});
 
 mongoose.connect(process.env.DATABASE)
   .then(() => console.log("Database connected successfully."))
@@ -27,7 +37,7 @@ app.use('/api', attendanceGeneratorRoutes);
 app.use('/api', userRoutes);
 
 app.use((req, res) => {
-    res.status(404).json({ message: "Endpoint not found." });
+  res.status(404).json({ message: "Endpoint not found." });
 });
 
 app.listen(port, () => {

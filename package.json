@@ -1,11 +1,10 @@
 {
-  "name": "attendance-system",
+  "name": "e-absensi",
   "version": "1.0.0",
   "type": "module",
   "description": "Attendance system geofencing based for Dinas Ketahanan Pangan, Pertanian, dan Perikanan",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon app.js"
   },
   "author": "PiolaEvania, ZulfaAuliyaAkbar, RidhaniSetiadi",
@@ -19,6 +18,7 @@
     "moment-timezone": "^0.6.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.17.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "vercel": "^46.0.2"
   }
 }
