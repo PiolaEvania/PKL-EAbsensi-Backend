@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
@@ -10,7 +11,6 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8000;
-const cors = require('cors');
 
 app.use(express.json());
 app.set('trust proxy', true);
