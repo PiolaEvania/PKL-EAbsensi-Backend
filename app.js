@@ -32,8 +32,8 @@ mongoose.connect(process.env.DATABASE)
   });
 
 app.use('/api', authRoutes);
-app.use('/api', attendanceRoutes);
 app.use('/api', attendanceGeneratorRoutes);
+app.use('/api', attendanceRoutes);
 app.use('/api', userRoutes);
 
 app.use((req, res) => {
