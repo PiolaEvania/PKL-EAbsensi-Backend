@@ -16,33 +16,37 @@ const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// POST /api/users/:userId/attendance
-export const markAttendance = async (req, res) => {
-  const { userId } = req.params;
+// POST /api/users/:userId/attendance/:attendanceId
+export const markAttendanceById = async (req, res) => {
+  const { attendanceId } = req.params;
   const { latitude, longitude, android_id, mocked_location } = req.body;
 
   try {
-    const todayWITA = moment.tz(TIMEZONE);
-    const todayStart = todayWITA.startOf('day').toDate();
-
-    const attendanceRecord = await Attendance.findOne({
-      user_id: userId,
-      date: todayStart,
-    });
+    const attendanceRecord = await Attendance.findById(attendanceId);
 
     if (!attendanceRecord) {
-      return res.status(404).json({ message: 'Jadwal absensi untuk hari ini tidak ditemukan. Hubungi admin.' });
+      return res.status(404).json({ message: 'Data absensi tidak ditemukan.' });
     }
 
+    if (attendanceRecord.user_id.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Anda tidak memiliki izin untuk mengubah absensi ini.' });
+    }
+
+    const today = moment.tz(TIMEZONE).startOf('day');
+    const recordDate = moment(attendanceRecord.date).startOf('day');
+    if (!today.isSame(recordDate)) {
+        return res.status(400).json({ message: 'Anda hanya bisa melakukan absensi untuk jadwal hari ini.' });
+    }
+    
     if (attendanceRecord.status !== 'Tidak Hadir') {
       return res.status(400).json({ message: 'Anda sudah melakukan absensi hari ini.' });
     }
-    
+
     if (mocked_location) {
-        attendanceRecord.status = 'Di Luar Area';
-        attendanceRecord.mocked_location = true;
-        await attendanceRecord.save();
-        return res.status(403).json({ message: 'Terdeteksi menggunakan lokasi palsu. Absensi ditolak.'});
+      attendanceRecord.status = 'Di Luar Area';
+      attendanceRecord.mocked_location = true;
+      await attendanceRecord.save();
+      return res.status(403).json({ message: 'Terdeteksi menggunakan lokasi palsu. Absensi ditolak.' });
     }
 
     const distance = getDistanceFromLatLonInMeters(
@@ -78,6 +82,30 @@ export const getAttendanceList = async (req, res) => {
     const records = await Attendance.find({ user_id: userId, date: { $lte: today } }).sort({ date: 'desc' });
     res.json(records);
   } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/users/:userId/attendance/today
+export const getAttendanceToday = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const todayStart = moment.tz(TIMEZONE).startOf('day').toDate();
+
+    const record = await Attendance.findOne({
+      user_id: userId,
+      date: todayStart,
+    });
+
+    if (!record) {
+      return res.status(404).json({ message: 'Jadwal absensi untuk hari ini tidak ditemukan.' });
+    }
+
+    res.status(200).json(record);
+
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
