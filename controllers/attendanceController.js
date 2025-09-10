@@ -168,3 +168,77 @@ export const deleteAttendance = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const requestLeave = async (req, res) => {
+  const { attendanceId } = req.params;
+  const { keterangan } = req.body;
+
+  if (!keterangan) {
+    return res.status(400).json({ message: 'Keterangan izin wajib diisi.' });
+  }
+
+  try {
+    const attendanceRecord = await Attendance.findById(attendanceId);
+    if (!attendanceRecord) {
+      return res.status(404).json({ message: 'Data absensi tidak ditemukan.' });
+    }
+    if (attendanceRecord.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Anda tidak berhak mengubah absensi ini.' });
+    }
+    if (attendanceRecord.status !== 'Tidak Hadir') {
+        return res.status(400).json({ message: `Tidak bisa mengajukan izin karena status absensi saat ini adalah '${attendanceRecord.status}'.` });
+    }
+
+    attendanceRecord.status = 'Izin';
+    attendanceRecord.notes = keterangan;
+    await attendanceRecord.save();
+    res.status(200).json({ message: 'Pengajuan izin berhasil terkirim.', data: attendanceRecord });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getLeaveRequests = async (req, res) => {
+  try {
+    const leaveRequests = await Attendance.find({ status: 'Izin' })
+    .populate('user_id', 'name username')
+    .sort({ date: 1 }); 
+    res.status(200).json(leaveRequests);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const approveLeaveRequest = async (req, res) => {
+  try {
+    const { attendanceId } = req.params;
+    const updatedRecord = await Attendance.findByIdAndUpdate( attendanceId,
+      { 
+        status: 'Izin Disetujui',updated_by: req.user.id
+      },
+      { new: true }
+    );
+    if (!updatedRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
+      res.status(200).json({ message: 'Izin berhasil disetujui.', data: updatedRecord });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const rejectLeaveRequest = async (req, res) => {
+  try {
+    const { attendanceId } = req.params;
+    const updatedRecord = await Attendance.findByIdAndUpdate( attendanceId,
+      { 
+        status: 'Tidak Hadir',
+        notes: `Ditolak oleh admin pada ${new Date().toLocaleString('id-ID')}`,
+        updated_by: req.user.id
+      },
+      { new: true }
+    );
+    if (!updatedRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
+      res.status(200).json({ message: 'Pengajuan izin telah ditolak.', data: updatedRecord });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
