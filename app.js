@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import attendanceGeneratorRoutes from './routes/attendanceGeneratorRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js'
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ mongoose.connect(process.env.DATABASE)
   });
 
 app.use('/api', authRoutes);
+app.use('/api', announcementRoutes);
 app.use('/api', attendanceGeneratorRoutes);
 app.use('/api', attendanceRoutes);
 app.use('/api', userRoutes);
