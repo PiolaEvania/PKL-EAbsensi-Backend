@@ -12,8 +12,13 @@ const attendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Hadir', 'Tidak Hadir', 'Di Luar Area'],
+    enum: ['Hadir', 'Tidak Hadir', 'Di Luar Area', 'Izin', 'Izin Disetujui'],
     default: 'Tidak Hadir',
+  },
+  notes: {
+    type: String,
+    trim: true,
+    default: null,
   },
   check_in_time: {
     type: Date,
