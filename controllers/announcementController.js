@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import Announcement from '../models/Announcement.js';
 
 export const createAnnouncement = async (req, res) => {
@@ -19,13 +20,16 @@ export const createAnnouncement = async (req, res) => {
 
 export const getActiveAnnouncements = async (req, res) => {
   try {
-    const now = new Date();
+    const now = moment.tz('Asia/Makassar').toDate();
+
     const announcements = await Announcement.find({
       start_date: { $lte: now },
       end_date: { $gte: now }
     }).sort({ createdAt: -1 });
+    
     res.status(200).json(announcements);
   } catch (error) {
+    console.error("Error fetching active announcements:", error); 
     res.status(500).json({ message: 'Server error', error });
   }
 };
