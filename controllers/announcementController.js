@@ -30,7 +30,6 @@ export const getActiveAnnouncements = async (req, res) => {
   }
 };
 
-// Admin: Update an existing announcement
 export const updateAnnouncement = async (req, res) => {
     const { announcementId } = req.params;
     try {
@@ -48,7 +47,6 @@ export const updateAnnouncement = async (req, res) => {
     }
 };
 
-// Admin: Delete an announcement
 export const deleteAnnouncement = async (req, res) => {
     const { announcementId } = req.params;
     try {
