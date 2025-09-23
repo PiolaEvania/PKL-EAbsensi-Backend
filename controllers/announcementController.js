@@ -29,3 +29,35 @@ export const getActiveAnnouncements = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+// Admin: Update an existing announcement
+export const updateAnnouncement = async (req, res) => {
+    const { announcementId } = req.params;
+    try {
+        const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+            announcementId,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!updatedAnnouncement) {
+            return res.status(404).json({ message: 'Pengumuman tidak ditemukan.' });
+        }
+        res.status(200).json({ message: 'Pengumuman berhasil diperbarui.', data: updatedAnnouncement });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+// Admin: Delete an announcement
+export const deleteAnnouncement = async (req, res) => {
+    const { announcementId } = req.params;
+    try {
+        const deletedAnnouncement = await Announcement.findByIdAndDelete(announcementId);
+        if (!deletedAnnouncement) {
+            return res.status(404).json({ message: 'Pengumuman tidak ditemukan.' });
+        }
+        res.status(200).json({ message: 'Pengumuman berhasil dihapus.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};

@@ -16,7 +16,7 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 app.set('trust proxy', true);
 app.use(cors({
-  origin: '',
+  origin: 'http://localhost:3000',
   method: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
