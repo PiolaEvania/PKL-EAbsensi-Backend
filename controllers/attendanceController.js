@@ -1,4 +1,3 @@
-// controllers/attendanceController.js
 import Attendance from '../models/Attendance.js';
 import moment from 'moment-timezone';
 import { OFFICE_COORDINATES, GEOFENCE_RADIUS_METERS, TIMEZONE } from '../config/constants.js';
