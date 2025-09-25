@@ -23,7 +23,6 @@ export const createAnnouncement = async (req, res) => {
 
 export const getActiveAnnouncements = async (req, res) => {
   try {
-    // Ini sudah benar
     const now = moment.tz('Asia/Makassar').toDate();
 
     const announcements = await Announcement.find({
