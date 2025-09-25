@@ -12,10 +12,8 @@ export const getAllUsers = async (req, res) => {
     const query = {};
 
     if (status === 'finished') {
-      // Riwayat: Ambil user yang tanggal selesai magangnya sudah lewat
       query.internship_end = { $lt: today };
     } else {
-      // Aktif (Default): Ambil user yang tanggal selesainya hari ini atau di masa depan
       query.$or = [
         { internship_end: { $gte: today } },
         { internship_end: null }

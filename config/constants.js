@@ -5,4 +5,4 @@ export const OFFICE_COORDINATES = {
 
 export const GEOFENCE_RADIUS_METERS = 100;
 
-export const TIMEZONE = 'Asia/Makassar'; // WITA
+export const TIMEZONE = 'Asia/Makassar';
