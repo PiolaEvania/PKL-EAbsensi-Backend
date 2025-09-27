@@ -18,7 +18,7 @@ const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
 // POST /api/users/:userId/attendance/:attendanceId
 export const markAttendanceById = async (req, res) => {
   const { attendanceId } = req.params;
-  const { latitude, longitude, android_id, mocked_location } = req.body;
+  const { latitude, longitude, android_id} = req.body;
 
   try {
     const attendanceRecord = await Attendance.findById(attendanceId);
@@ -41,7 +41,7 @@ export const markAttendanceById = async (req, res) => {
       return res.status(400).json({ message: 'Anda sudah melakukan absensi hari ini.' });
     }
 
-    if (mocked_location) {
+    if (req.body.mocked_location === true) {
       attendanceRecord.status = 'Di Luar Area';
       attendanceRecord.mocked_location = true;
       await attendanceRecord.save();
@@ -61,7 +61,7 @@ export const markAttendanceById = async (req, res) => {
     attendanceRecord.check_in_longitude = longitude;
     attendanceRecord.ip_address = req.ip;
     attendanceRecord.android_id = android_id;
-    attendanceRecord.mocked_location = mocked_location || false;
+    attendanceRecord.mocked_location = false;
 
     await attendanceRecord.save();
     res.status(200).json({ message: `Absensi berhasil: ${status}`, data: attendanceRecord });
@@ -170,9 +170,9 @@ export const deleteAttendance = async (req, res) => {
 
 export const requestLeave = async (req, res) => {
   const { attendanceId } = req.params;
-  const { keterangan } = req.body;
+  const { notes } = req.body;
 
-  if (!keterangan) {
+  if (!notes) {
     return res.status(400).json({ message: 'Keterangan izin wajib diisi.' });
   }
 
@@ -189,7 +189,7 @@ export const requestLeave = async (req, res) => {
     }
 
     attendanceRecord.status = 'Izin';
-    attendanceRecord.notes = keterangan;
+    attendanceRecord.notes = notes;
     await attendanceRecord.save();
     res.status(200).json({ message: 'Pengajuan izin berhasil terkirim.', data: attendanceRecord });
   } catch (error) {
