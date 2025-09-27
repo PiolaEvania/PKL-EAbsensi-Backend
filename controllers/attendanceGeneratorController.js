@@ -19,11 +19,13 @@ export const generateAttendanceRecords = async (req, res) => {
     let recordsToInsert = [];
 
     for (let m = start; m.isSameOrBefore(end); m.add(1, 'days')) {
-      recordsToInsert.push({
-        user_id: userId,
-        date: m.toDate(),
-        status: 'Tidak Hadir',
-      });
+      if (m.day() !== 0 && m.day() !== 6) {
+        recordsToInsert.push({
+          user_id: userId,
+          date: m.toDate(),
+          status: 'Tidak Hadir',
+        });
+      }
     }
 
     if (recordsToInsert.length === 0) {
