@@ -77,20 +77,34 @@ const generatePdf = async (user, attendance, res) => {
   doc.text('Jam Masuk', col2, tableTop);
   doc.text('Status', col3, tableTop);
   doc.text('Catatan', col4, tableTop);
-  doc.y += 15;
+  doc.y += 20;
   
   doc.font('Helvetica');
   attendance.forEach(att => {
-    doc.text(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), col1);
-    doc.text(att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-', col2);
-    doc.text(att.status, col3);
-    doc.text(att.notes || '-', col4, { width: 150 });
-    doc.y += 10;
+    if (doc.y > 700) {
+        doc.addPage();
+    }
+    const rowY = doc.y;
+    doc.text(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), col1, rowY, { width: 140 });
+    doc.text(att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-', col2, rowY);
+    doc.text(att.status, col3, rowY);
+    doc.text(att.notes || '-', col4, rowY, { width: 150 });
+
+    const rowHeight = Math.max(
+        doc.heightOfString(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), { width: 140 }),
+        doc.heightOfString(att.notes || '-', { width: 150 })
+    );
+    doc.y = rowY + rowHeight + 10;
   });
 
+  if (doc.y > 650) {
+    doc.addPage();
+  }
+
   const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
-  doc.y = 700;
-  doc.text(`Banjarmasin, ${todayFormatted}`, { align: 'right' });
+  
+  const signatureY = doc.y < 650 ? 650 : doc.y + 50; 
+  doc.text(`Banjarmasin, ${todayFormatted}`, 0, signatureY, { align: 'right' });
   doc.moveDown(0.5);
   doc.text('Mengetahui,', { align: 'right' });
   doc.moveDown(3);
@@ -116,8 +130,8 @@ const generateXlsx = async (user, attendance, res) => {
     worksheet.addRow(['Tanggal Selesai:', new Date(user.internship_end).toLocaleDateString('id-ID')]);
     worksheet.addRow([]);
 
-    worksheet.addRow(['Hari, Tanggal', 'Jam Check-in', 'Status', 'Catatan']);
-    worksheet.getRow(8).font = { bold: true };
+    const headerRow = worksheet.addRow(['Hari, Tanggal', 'Jam Masuk', 'Status', 'Catatan']);
+    headerRow.font = { bold: true };
 
     attendance.forEach(att => {
         worksheet.addRow([
@@ -132,15 +146,21 @@ const generateXlsx = async (user, attendance, res) => {
         column.width = 30;
     });
 
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+    
     const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
-    worksheet.addRow([]);
-    worksheet.addRow([]);
-    worksheet.mergeCells('D15:E15');
-    worksheet.getCell('D15').value = `Banjarmasin, ${todayFormatted}`;
-    worksheet.mergeCells('D16:E16');
-    worksheet.getCell('D16').value = 'Mengetahui, ';
-    worksheet.mergeCells('D17:E17');
-    worksheet.getCell('D17').value = 'Kepala DKP3 Kota Banjarmasin';
+    const signatureRowStart = worksheet.lastRow.number + 1;
+
+    worksheet.mergeCells(`D${signatureRowStart}:E${signatureRowStart}`);
+    worksheet.getCell(`D${signatureRowStart}`).value = `Banjarmasin, ${todayFormatted}`;
+    worksheet.getCell(`D${signatureRowStart}`).alignment = { horizontal: 'center' };
+    worksheet.mergeCells(`D${signatureRowStart + 1}:E${signatureRowStart + 1}`);
+    worksheet.getCell(`D${signatureRowStart + 1}`).value = 'Mengetahui,';
+    worksheet.getCell(`D${signatureRowStart + 1}`).alignment = { horizontal: 'center' };
+    worksheet.mergeCells(`D${signatureRowStart + 3}:E${signatureRowStart + 3}`);
+    worksheet.getCell(`D${signatureRowStart + 3}`).value = 'Kepala DKP3 Kota Banjarmasin';
+    worksheet.getCell(`D${signatureRowStart + 3}`).alignment = { horizontal: 'center' };
 
     const filename = `Laporan Absensi - ${user.name}.xlsx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
