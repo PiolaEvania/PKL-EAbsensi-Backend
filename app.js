@@ -16,11 +16,25 @@ const port = process.env.PORT;
 
 app.use(express.json());
 app.set('trust proxy', true);
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://eabsensi-dkp3bjm-admin.vercel.app' 
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Pastikan ini "methods"
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
   res.send('Server is running...');
