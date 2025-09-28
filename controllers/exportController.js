@@ -1,0 +1,151 @@
+import User from '../models/User.js';
+import Attendance from '../models/Attendance.js';
+import PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
+import axios from 'axios';
+import moment from 'moment-timezone';
+
+export const exportAttendance = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { format } = req.query; // 'pdf' or 'xlsx'
+
+    const user = await User.findById(userId);
+    const attendance = await Attendance.find({ user_id: userId }).sort({ date: 'asc' });
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    if (format === 'pdf') {
+      generatePdf(user, attendance, res);
+    } else if (format === 'xlsx') {
+      generateXlsx(user, attendance, res);
+    } else {
+      res.status(400).send('Invalid format specified');
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).send('Server error during export');
+  }
+};
+
+// .pdf export
+const generatePdf = async (user, attendance, res) => {
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+  const filename = `Laporan Absensi - ${user.name}.pdf`;
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+  doc.pipe(res);
+
+  try {
+    const logoResponse = await axios.get('https://i.imgbox.com/cN2ke70I.png', { responseType: 'arraybuffer' });
+    const logoImage = Buffer.from(logoResponse.data, 'binary');
+    doc.image(logoImage, 50, 45, { width: 60 });
+  } catch (error) {
+    console.error("Could not fetch logo for PDF", error);
+  }
+  
+  doc.font('Helvetica-Bold').fontSize(14).text('Dinas Ketahanan Pangan, Pertanian dan Perikanan', { align: 'center' });
+  doc.moveDown(0.5);
+  doc.font('Helvetica').fontSize(10).text('Komplek Screen House Jl. Pangeran Hidayatullah/Lingkar Dalam Utara', { align: 'center' });
+  doc.fontSize(10).text('Kel. Benua Anyar Kec. Banjarmasin Timur 70239', { align: 'center' });
+  doc.moveDown(0.5);
+  doc.fillColor('blue').text('dkp3.banjarmasinkota.go.id', { align: 'center', link: 'http://dkp3.banjarmasinkota.go.id', underline: true });
+  doc.fillColor('black');
+  doc.moveDown(2);
+
+  doc.font('Helvetica-Bold').fontSize(12).text('Laporan Absensi Peserta Magang');
+  doc.moveDown(1);
+  doc.font('Helvetica').fontSize(10);
+  doc.text(`Nama: ${user.name}`);
+  doc.text(`Nomor Telepon: ${user.phone || '-'}`);
+  doc.text(`Tanggal Mulai: ${new Date(user.internship_start).toLocaleDateString('id-ID')}`);
+  doc.text(`Tanggal Selesai: ${new Date(user.internship_end).toLocaleDateString('id-ID')}`);
+  doc.moveDown(1.5);
+
+  const tableTop = doc.y;
+  const col1 = 50;
+  const col2 = 200;
+  const col3 = 300;
+  const col4 = 400;
+
+  doc.font('Helvetica-Bold');
+  doc.text('Hari, Tanggal', col1, tableTop);
+  doc.text('Jam Masuk', col2, tableTop);
+  doc.text('Status', col3, tableTop);
+  doc.text('Catatan', col4, tableTop);
+  doc.y += 15;
+  
+  doc.font('Helvetica');
+  attendance.forEach(att => {
+    doc.text(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), col1);
+    doc.text(att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-', col2);
+    doc.text(att.status, col3);
+    doc.text(att.notes || '-', col4, { width: 150 });
+    doc.y += 10;
+  });
+
+  const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
+  doc.y = 700;
+  doc.text(`Banjarmasin, ${todayFormatted}`, { align: 'right' });
+  doc.moveDown(0.5);
+  doc.text('Mengetahui,', { align: 'right' });
+  doc.moveDown(3);
+  doc.text('Kepala DKP3 Kota Banjarmasin', { align: 'right' });
+
+  doc.end();
+};
+
+// .xlx export
+const generateXlsx = async (user, attendance, res) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Laporan Absensi');
+    
+    worksheet.mergeCells('A1:E1');
+    worksheet.getCell('A1').value = 'Dinas Ketahanan Pangan, Pertanian dan Perikanan Kota Banjarmasin';
+    worksheet.getCell('A1').alignment = { horizontal: 'center' };
+    worksheet.getCell('A1').font = { bold: true, size: 14 };
+    
+    worksheet.addRow([]);
+    worksheet.addRow(['Nama:', user.name]);
+    worksheet.addRow(['Nomor Telepon:', user.phone || '-']);
+    worksheet.addRow(['Tanggal Mulai:', new Date(user.internship_start).toLocaleDateString('id-ID')]);
+    worksheet.addRow(['Tanggal Selesai:', new Date(user.internship_end).toLocaleDateString('id-ID')]);
+    worksheet.addRow([]);
+
+    worksheet.addRow(['Hari, Tanggal', 'Jam Check-in', 'Status', 'Catatan']);
+    worksheet.getRow(8).font = { bold: true };
+
+    attendance.forEach(att => {
+        worksheet.addRow([
+            new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-',
+            att.status,
+            att.notes || '-'
+        ]);
+    });
+
+    worksheet.columns.forEach(column => {
+        column.width = 30;
+    });
+
+    const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+    worksheet.mergeCells('D15:E15');
+    worksheet.getCell('D15').value = `Banjarmasin, ${todayFormatted}`;
+    worksheet.mergeCells('D16:E16');
+    worksheet.getCell('D16').value = 'Mengetahui, ';
+    worksheet.mergeCells('D17:E17');
+    worksheet.getCell('D17').value = 'Kepala DKP3 Kota Banjarmasin';
+
+    const filename = `Laporan Absensi - ${user.name}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+};
