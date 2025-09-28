@@ -8,7 +8,7 @@ import moment from 'moment-timezone';
 export const exportAttendance = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { format } = req.query; // 'pdf' or 'xlsx'
+    const { format } = req.query;
 
     const user = await User.findById(userId);
     const attendance = await Attendance.find({ user_id: userId }).sort({ date: 'asc' });
