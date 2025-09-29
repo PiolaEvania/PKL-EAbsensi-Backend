@@ -2,7 +2,6 @@ import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
-import axios from 'axios';
 import moment from 'moment-timezone';
 
 export const exportAttendance = async (req, res) => {
@@ -38,14 +37,6 @@ const generatePdf = async (user, attendance, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
   doc.pipe(res);
-
-  try {
-    const logoResponse = await axios.get('https://i.imgbox.com/cN2ke70I.png', { responseType: 'arraybuffer' });
-    const logoImage = Buffer.from(logoResponse.data, 'binary');
-    doc.image(logoImage, 50, 45, { width: 60 });
-  } catch (error) {
-    console.error("Could not fetch logo for PDF", error);
-  }
   
   doc.font('Helvetica-Bold').fontSize(14).text('Dinas Ketahanan Pangan, Pertanian dan Perikanan', { align: 'center' });
   doc.moveDown(0.5);
@@ -118,7 +109,7 @@ const generateXlsx = async (user, attendance, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Laporan Absensi');
     
-    worksheet.mergeCells('A1:D1'); // Sesuaikan merge cell
+    worksheet.mergeCells('A1:D1');
     worksheet.getCell('A1').value = 'Dinas Ketahanan Pangan, Pertanian dan Perikanan Kota Banjarmasin';
     worksheet.getCell('A1').alignment = { horizontal: 'center' };
     worksheet.getCell('A1').font = { bold: true, size: 14 };
