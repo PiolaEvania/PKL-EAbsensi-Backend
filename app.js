@@ -7,7 +7,7 @@ import userRoutes from './routes/userRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import attendanceGeneratorRoutes from './routes/attendanceGeneratorRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js'
-import exportRoutes from './routes/exportRoutes.js'
+//import exportRoutes from './routes/exportRoutes.js'
 
 dotenv.config();
 
@@ -52,7 +52,7 @@ app.use('/api', announcementRoutes);
 app.use('/api', attendanceGeneratorRoutes);
 app.use('/api', attendanceRoutes);
 app.use('/api', userRoutes);
-app.use('/api', exportRoutes);
+//app.use('/api', exportRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Endpoint not found." });
