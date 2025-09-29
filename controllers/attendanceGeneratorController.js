@@ -42,6 +42,8 @@ export const generateAttendanceRecords = async (req, res) => {
       check_in_longitude: null,
       ip_address: null,
       android_id: null,
+      mocked_location: false,
+      updated_by: null,
     }));
     
     await Attendance.insertMany(recordsToInsert);
