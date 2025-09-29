@@ -18,9 +18,9 @@ export const exportAttendance = async (req, res) => {
     }
 
     if (format === 'pdf') {
-      generatePdf(user, attendance, res);
+      await generatePdf(user, attendance, res);
     } else if (format === 'xlsx') {
-      generateXlsx(user, attendance, res);
+      await generateXlsx(user, attendance, res);
     } else {
       res.status(400).send('Invalid format specified');
     }
@@ -30,13 +30,12 @@ export const exportAttendance = async (req, res) => {
   }
 };
 
-// .pdf export
 const generatePdf = async (user, attendance, res) => {
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-  const filename = Laporan Absensi - ${user.name}.pdf;
+  const filename = `Laporan Absensi - ${user.name}.pdf`;
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', attachment; filename="${filename}");
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
   doc.pipe(res);
 
@@ -60,10 +59,10 @@ const generatePdf = async (user, attendance, res) => {
   doc.font('Helvetica-Bold').fontSize(12).text('Laporan Absensi Peserta Magang');
   doc.moveDown(1);
   doc.font('Helvetica').fontSize(10);
-  doc.text(Nama: ${user.name});
-  doc.text(Nomor Telepon: ${user.phone || '-'});
-  doc.text(Tanggal Mulai: ${new Date(user.internship_start).toLocaleDateString('id-ID')});
-  doc.text(Tanggal Selesai: ${new Date(user.internship_end).toLocaleDateString('id-ID')});
+  doc.text(`Nama: ${user.name}`);
+  doc.text(`Nomor Telepon: ${user.phone || '-'}`);
+  doc.text(`Tanggal Mulai: ${new Date(user.internship_start).toLocaleDateString('id-ID')}`);
+  doc.text(`Tanggal Selesai: ${new Date(user.internship_end).toLocaleDateString('id-ID')}`);
   doc.moveDown(1.5);
 
   const tableTop = doc.y;
@@ -85,13 +84,15 @@ const generatePdf = async (user, attendance, res) => {
         doc.addPage();
     }
     const rowY = doc.y;
-    doc.text(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), col1, rowY, { width: 140 });
-    doc.text(att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-', col2, rowY);
+    const displayDate = new Date(att.date.replace(/-/g, '/')).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    
+    doc.text(displayDate, col1, rowY, { width: 140 });
+    doc.text(att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID', { timeZone: 'Asia/Makassar'}) : '-', col2, rowY);
     doc.text(att.status, col3, rowY);
     doc.text(att.notes || '-', col4, rowY, { width: 150 });
 
     const rowHeight = Math.max(
-        doc.heightOfString(new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }), { width: 140 }),
+        doc.heightOfString(displayDate, { width: 140 }),
         doc.heightOfString(att.notes || '-', { width: 150 })
     );
     doc.y = rowY + rowHeight + 10;
@@ -104,7 +105,7 @@ const generatePdf = async (user, attendance, res) => {
   const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
   
   const signatureY = doc.y < 650 ? 650 : doc.y + 50; 
-  doc.text(Banjarmasin, ${todayFormatted}, 0, signatureY, { align: 'right' });
+  doc.text(`Banjarmasin, ${todayFormatted}`, 0, signatureY, { align: 'right' });
   doc.moveDown(0.5);
   doc.text('Mengetahui,', { align: 'right' });
   doc.moveDown(3);
@@ -113,12 +114,11 @@ const generatePdf = async (user, attendance, res) => {
   doc.end();
 };
 
-// .xlx export
 const generateXlsx = async (user, attendance, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Laporan Absensi');
     
-    worksheet.mergeCells('A1:E1');
+    worksheet.mergeCells('A1:D1'); // Sesuaikan merge cell
     worksheet.getCell('A1').value = 'Dinas Ketahanan Pangan, Pertanian dan Perikanan Kota Banjarmasin';
     worksheet.getCell('A1').alignment = { horizontal: 'center' };
     worksheet.getCell('A1').font = { bold: true, size: 14 };
@@ -135,15 +135,15 @@ const generateXlsx = async (user, attendance, res) => {
 
     attendance.forEach(att => {
         worksheet.addRow([
-            new Date(att.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-            att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID') : '-',
+            new Date(att.date.replace(/-/g, '/')).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            att.check_in_time ? new Date(att.check_in_time).toLocaleTimeString('id-ID', { timeZone: 'Asia/Makassar'}) : '-',
             att.status,
             att.notes || '-'
         ]);
     });
 
     worksheet.columns.forEach(column => {
-        column.width = 30;
+        column.width = 35;
     });
 
     worksheet.addRow([]);
@@ -152,19 +152,21 @@ const generateXlsx = async (user, attendance, res) => {
     const todayFormatted = moment.tz('Asia/Makassar').format('D MMMM YYYY');
     const signatureRowStart = worksheet.lastRow.number + 1;
 
-    worksheet.mergeCells(D${signatureRowStart}:E${signatureRowStart});
-    worksheet.getCell(D${signatureRowStart}).value = Banjarmasin, ${todayFormatted};
-    worksheet.getCell(D${signatureRowStart}).alignment = { horizontal: 'center' };
-    worksheet.mergeCells(D${signatureRowStart + 1}:E${signatureRowStart + 1});
-    worksheet.getCell(D${signatureRowStart + 1}).value = 'Mengetahui,';
-    worksheet.getCell(D${signatureRowStart + 1}).alignment = { horizontal: 'center' };
-    worksheet.mergeCells(D${signatureRowStart + 3}:E${signatureRowStart + 3});
-    worksheet.getCell(D${signatureRowStart + 3}).value = 'Kepala DKP3 Kota Banjarmasin';
-    worksheet.getCell(D${signatureRowStart + 3}).alignment = { horizontal: 'center' };
-
-    const filename = Laporan Absensi - ${user.name}.xlsx;
+    worksheet.mergeCells(`C${signatureRowStart}:D${signatureRowStart}`);
+    worksheet.getCell(`C${signatureRowStart}`).value = `Banjarmasin, ${todayFormatted}`;
+    worksheet.getCell(`C${signatureRowStart}`).alignment = { horizontal: 'center' };
+    
+    worksheet.mergeCells(`C${signatureRowStart + 1}:D${signatureRowStart + 1}`);
+    worksheet.getCell(`C${signatureRowStart + 1}`).value = 'Mengetahui,';
+    worksheet.getCell(`C${signatureRowStart + 1}`).alignment = { horizontal: 'center' };
+    
+    worksheet.mergeCells(`C${signatureRowStart + 3}:D${signatureRowStart + 3}`);
+    worksheet.getCell(`C${signatureRowStart + 3}`).value = 'Kepala DKP3 Kota Banjarmasin';
+    worksheet.getCell(`C${signatureRowStart + 3}`).alignment = { horizontal: 'center' };
+    
+    const filename = `Laporan Absensi - ${user.name}.xlsx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', attachment; filename="${filename}");
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
     await workbook.xlsx.write(res);
     res.end();
