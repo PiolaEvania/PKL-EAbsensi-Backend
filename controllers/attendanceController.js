@@ -32,7 +32,7 @@ export const markAttendanceById = async (req, res) => {
     }
 
     const today = moment.tz(TIMEZONE).startOf('day');
-    const recordDate = moment(attendanceRecord.date).startOf('day');
+    const recordDate = moment(attendanceRecord.date).tz(TIMEZONE).startOf('day');
     if (!today.isSame(recordDate)) {
         return res.status(400).json({ message: 'Anda hanya bisa melakukan absensi untuk jadwal hari ini.' });
     }
@@ -90,11 +90,12 @@ export const getAttendanceToday = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const todayStart = moment.tz(TIMEZONE).startOf('day').toDate();
+    const todayStart = moment.tz(TIMEZONE).startOf('day');
+    const todayEnd = moment.tz(TIMEZONE).endOf('day');
 
     const record = await Attendance.findOne({
       user_id: userId,
-      date: todayStart,
+      date: { $gte: todayStart.toDate(), $lte: todayEnd.toDate() },
     });
 
     if (!record) {
