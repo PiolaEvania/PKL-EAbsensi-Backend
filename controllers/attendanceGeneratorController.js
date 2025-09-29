@@ -15,36 +15,38 @@ export const generateAttendanceRecords = async (req, res) => {
 
     const start = moment.tz(user.internship_start, TIMEZONE).startOf('day');
     const end = moment.tz(user.internship_end, TIMEZONE).startOf('day');
-    
-    let recordsToInsert = [];
-
-    for (let m = start; m.isSameOrBefore(end); m.add(1, 'days')) {
-      if (m.day() !== 0 && m.day() !== 6) {
-        recordsToInsert.push({
-          user_id: userId,
-          date: m.format('YYYY-MM-DD'),
-          status: 'Tidak Hadir',
-        });
+    const expectedDates = [];
+    for (let m = start.clone(); m.isSameOrBefore(end); m.add(1, 'days')) {
+      if (m.day() !== 0 && m.day() !== 6) 
+      {
+        expectedDates.push(m.format('YYYY-MM-DD'));
       }
     }
 
-    if (recordsToInsert.length === 0) {
-      return res.status(200).json({ message: 'No new attendance records needed for this date range.' });
+    const existingRecords = await Attendance.find({ user_id: userId }, 'date -_id');
+    const existingDates = new Set(existingRecords.map(record => record.date));
+
+    const missingDates = expectedDates.filter(date => !existingDates.has(date));
+
+    if (missingDates.length === 0) {
+      return res.status(200).json({ message: 'Jadwal absensi sudah lengkap. Tidak ada yang perlu ditambahkan.' });
     }
 
-    await Attendance.deleteMany({ user_id: userId });
-    await Attendance.insertMany(recordsToInsert, { ordered: false });
+    const recordsToInsert = missingDates.map(date => ({
+      user_id: userId,
+      date: date,
+      status: 'Tidak Hadir',
+    }));
+    
+    await Attendance.insertMany(recordsToInsert);
 
     res.status(201).json({
-      message: `Successfully generated/updated attendance records for user ${user.username}.`,
-      total_days: recordsToInsert.length,
+      message: `Berhasil memulihkan ${recordsToInsert.length} jadwal absensi yang hilang.`,
+      total_added: recordsToInsert.length,
     });
 
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(200).json({ message: 'Attendance records already exist for some or all dates.' });
-    }
-    console.error(error);
+    console.error("Generate attendance error:", error);
     res.status(500).json({ message: 'Server error' });
   }
 };
