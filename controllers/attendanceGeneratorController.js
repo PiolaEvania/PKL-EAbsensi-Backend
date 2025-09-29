@@ -36,6 +36,12 @@ export const generateAttendanceRecords = async (req, res) => {
       user_id: userId,
       date: date,
       status: 'Tidak Hadir',
+      notes: null,
+      check_in_time: null,
+      check_in_latitude: null,
+      check_in_longitude: null,
+      ip_address: null,
+      android_id: null,
     }));
     
     await Attendance.insertMany(recordsToInsert);

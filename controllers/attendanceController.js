@@ -212,14 +212,23 @@ export const getLeaveRequests = async (req, res) => {
 export const approveLeaveRequest = async (req, res) => {
   try {
     const { attendanceId } = req.params;
-    const updatedRecord = await Attendance.findByIdAndUpdate( attendanceId,
+    const attendanceRecord = await Attendance.findById(attendanceId);
+    if (!attendanceRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
+
+    const originalNotes = attendanceRecord.notes || '';
+    const newNotes = `Disetujui: ${originalNotes}`;
+
+    const updatedRecord = await Attendance.findByIdAndUpdate(
+      attendanceId,
       { 
-        status: 'Izin Disetujui',updated_by: req.user.id
+        status: 'Izin Disetujui',
+        notes: newNotes,
+        updated_by: req.user.id 
       },
       { new: true }
     );
-    if (!updatedRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
-      res.status(200).json({ message: 'Izin berhasil disetujui.', data: updatedRecord });
+    
+    res.status(200).json({ message: 'Izin berhasil disetujui.', data: updatedRecord });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -228,16 +237,24 @@ export const approveLeaveRequest = async (req, res) => {
 export const rejectLeaveRequest = async (req, res) => {
   try {
     const { attendanceId } = req.params;
-    const updatedRecord = await Attendance.findByIdAndUpdate( attendanceId,
+    const attendanceRecord = await Attendance.findById(attendanceId);
+    if (!attendanceRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
+
+    const originalNotes = attendanceRecord.notes || '';
+    const adminNotes = `Ditolak oleh admin pada ${new Date().toLocaleDateString('id-ID')}.`;
+    const newNotes = `${adminNotes} Alasan Awal: "${originalNotes}"`;
+
+    const updatedRecord = await Attendance.findByIdAndUpdate(
+      attendanceId,
       { 
         status: 'Tidak Hadir',
-        notes: `Ditolak oleh admin pada ${new Date().toLocaleString('id-ID')}`,
-        updated_by: req.user.id
+        notes: newNotes,
+        updated_by: req.user.id 
       },
       { new: true }
     );
-    if (!updatedRecord) return res.status(404).json({ message: 'Catatan izin tidak ditemukan.' });
-      res.status(200).json({ message: 'Pengajuan izin telah ditolak.', data: updatedRecord });
+    
+    res.status(200).json({ message: 'Pengajuan izin telah ditolak.', data: updatedRecord });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
