@@ -9,6 +9,7 @@
   "author": "PiolaEvania, ZulfaAuliyaAkbar, RidhaniSetiadi",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
