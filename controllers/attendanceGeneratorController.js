@@ -22,7 +22,7 @@ export const generateAttendanceRecords = async (req, res) => {
       if (m.day() !== 0 && m.day() !== 6) {
         recordsToInsert.push({
           user_id: userId,
-          date: new Date(m.format()), 
+          date: m.toDate(), 
           status: 'Tidak Hadir',
         });
       }
@@ -32,6 +32,7 @@ export const generateAttendanceRecords = async (req, res) => {
       return res.status(200).json({ message: 'No new attendance records needed for this date range.' });
     }
 
+    await Attendance.deleteMany({ user_id: userId });
     await Attendance.insertMany(recordsToInsert, { ordered: false });
 
     res.status(201).json({
