@@ -33,8 +33,9 @@ export const markAttendanceById = async (req, res) => {
 
     const today = moment.tz(TIMEZONE).startOf('day');
     const recordDate = moment(attendanceRecord.date).tz(TIMEZONE).startOf('day');
-    if (!today.isSame(recordDate)) {
-        return res.status(400).json({ message: 'Anda hanya bisa melakukan absensi untuk jadwal hari ini.' });
+
+    if (!today.isSame(recordDate, 'day')) {
+      return res.status(400).json({ message: 'Anda hanya bisa melakukan absensi untuk jadwal hari ini.' });
     }
     
     if (attendanceRecord.status !== 'Tidak Hadir') {
