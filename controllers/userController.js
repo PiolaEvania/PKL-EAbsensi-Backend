@@ -46,6 +46,10 @@ export const createUser = async (req, res) => {
   const { name, username, password, email, phone, role, internship_start, internship_end } = req.body;
 
   try {
+    if (internship_start && internship_end && moment(internship_start).isAfter(internship_end)) {
+      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
+    }
+
     let user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) return res.status(400).json({ message: 'Username or email already exists' });
 
@@ -76,9 +80,16 @@ export const updateUser = async (req, res) => {
   let updateData = { ...otherData };
 
   try {
-    if (password) {
+    const { internship_start, internship_end } = updateData;
+    if (internship_start && internship_end && moment(internship_start).isAfter(internship_end)) {
+      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
+    }
+
+    if (password && password.length > 0) {
       const salt = await bcrypt.genSalt(10);
       updateData.password_hash = await bcrypt.hash(password, salt);
+    } else {
+      delete updateData.password;
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
