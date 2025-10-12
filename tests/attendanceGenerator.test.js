@@ -12,14 +12,13 @@ app.use(express.json());
 app.post('/api/users/:userId/attendance/generate', generateAttendanceRecords);
 
 describe('POST /api/users/:userId/attendance/generate', () => {
-
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   test('should return 404 if user is not found', async () => {
     User.findById.mockResolvedValue(null);
-    
+
     const response = await request(app).post('/api/users/nonexistentuser/attendance/generate');
 
     expect(User.findById).toHaveBeenCalledWith('nonexistentuser');
@@ -32,7 +31,7 @@ describe('POST /api/users/:userId/attendance/generate', () => {
     User.findById.mockResolvedValue(mockUser);
 
     const response = await request(app).post('/api/users/user123/attendance/generate');
-    
+
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe('Internship start and end dates must be set for the user.');
   });
@@ -42,13 +41,13 @@ describe('POST /api/users/:userId/attendance/generate', () => {
       _id: 'user123',
       name: 'Complete User',
       internship_start: '2025-10-06',
-      internship_end: '2025-10-07'
+      internship_end: '2025-10-07',
     };
     User.findById.mockResolvedValue(mockUser);
 
     const existingRecords = [
       { date: '2025-10-06' },
-      { date: '2025-10-07' }
+      { date: '2025-10-07' },
     ];
     Attendance.find.mockResolvedValue(existingRecords);
 
@@ -64,23 +63,23 @@ describe('POST /api/users/:userId/attendance/generate', () => {
       _id: 'user123',
       name: 'Incomplete User',
       internship_start: '2025-10-08', // Wednesday
-      internship_end: '2025-10-12'   // Sunday
+      internship_end: '2025-10-12', // Sunday
     };
     User.findById.mockResolvedValue(mockUser);
 
     const existingRecords = [
-      { date: '2025-10-08' } // Wednesday exists
+      { date: '2025-10-08' }, // Wednesday exists
     ];
     Attendance.find.mockResolvedValue(existingRecords);
     Attendance.insertMany.mockResolvedValue({});
 
     const response = await request(app).post('/api/users/user123/attendance/generate');
-    
+
     expect(Attendance.insertMany).toHaveBeenCalledTimes(1);
-    
+
     const recordsToInsert = Attendance.insertMany.mock.calls[0][0];
     expect(recordsToInsert).toHaveLength(2);
-    expect(recordsToInsert.map(r => r.date)).toEqual(['2025-10-09', '2025-10-10']);
+    expect(recordsToInsert.map((r) => r.date)).toEqual(['2025-10-09', '2025-10-10']);
     expect(recordsToInsert[0]).toHaveProperty('status', 'Tidak Hadir');
     expect(recordsToInsert[0]).toHaveProperty('check_in_time', null);
 

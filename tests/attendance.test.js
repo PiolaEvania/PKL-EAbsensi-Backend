@@ -1,8 +1,8 @@
 import request from 'supertest';
 import express from 'express';
+import moment from 'moment-timezone';
 import attendanceRoutes from '../routes/attendanceRoutes.js';
 import Attendance from '../models/Attendance.js';
-import moment from 'moment-timezone';
 import { TIMEZONE } from '../config/constants.js';
 
 jest.mock('../models/Attendance.js');
@@ -23,12 +23,12 @@ jest.mock('../middlewares/auth.js', () => ({
     }
   },
   isOwnerOrAdmin: (req, res, next) => {
-      if (req.user.role === 'admin' || req.user.id === req.params.userId) {
-          next();
-      } else {
-          res.status(403).json({ message: 'Forbidden' });
-      }
-  }
+    if (req.user.role === 'admin' || req.user.id === req.params.userId) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Forbidden' });
+    }
+  },
 }));
 
 const app = express();
@@ -36,13 +36,11 @@ app.use(express.json());
 app.use('/api', attendanceRoutes);
 
 describe('Attendance', () => {
-  
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('markAttendanceById', () => {
-    
     test('should return 400 if attendance is for the wrong day', async () => {
       const mockRecord = {
         _id: 'att1', user_id: 'user123', date: '2025-01-01', status: 'Tidak Hadir',
@@ -76,10 +74,10 @@ describe('Attendance', () => {
     test('should return 403 and set status to "Di Luar Area" if mocked_location is true', async () => {
       const saveMock = jest.fn().mockResolvedValue(true);
       const mockRecord = {
-        _id: 'att1', user_id: 'user123', date: moment.tz(TIMEZONE).format('YYYY-MM-DD'), status: 'Tidak Hadir', save: saveMock
+        _id: 'att1', user_id: 'user123', date: moment.tz(TIMEZONE).format('YYYY-MM-DD'), status: 'Tidak Hadir', save: saveMock,
       };
       Attendance.findById.mockResolvedValue(mockRecord);
-      
+
       const response = await request(app)
         .post('/api/users/user123/attendance/att1')
         .set('Authorization', 'Bearer user-token')
@@ -89,24 +87,24 @@ describe('Attendance', () => {
       expect(mockRecord.status).toBe('Di Luar Area');
       expect(response.statusCode).toBe(403);
     });
-    
+
     test('should set status to "Hadir" if within geofence radius', async () => {
-        const saveMock = jest.fn().mockResolvedValue(true);
-        const mockRecord = {
-          _id: 'att1', user_id: 'user123', date: moment.tz(TIMEZONE).format('YYYY-MM-DD'), status: 'Tidak Hadir', save: saveMock
-        };
-        Attendance.findById.mockResolvedValue(mockRecord);
-  
-        await request(app)
-          .post('/api/users/user123/attendance/att1')
-          .set('Authorization', 'Bearer user-token')
-          .send({ latitude: -3.3089332, longitude: 114.613662 });
-  
-        expect(saveMock).toHaveBeenCalled();
-        expect(mockRecord.status).toBe('Hadir');
-      });
+      const saveMock = jest.fn().mockResolvedValue(true);
+      const mockRecord = {
+        _id: 'att1', user_id: 'user123', date: moment.tz(TIMEZONE).format('YYYY-MM-DD'), status: 'Tidak Hadir', save: saveMock,
+      };
+      Attendance.findById.mockResolvedValue(mockRecord);
+
+      await request(app)
+        .post('/api/users/user123/attendance/att1')
+        .set('Authorization', 'Bearer user-token')
+        .send({ latitude: -3.3089332, longitude: 114.613662 });
+
+      expect(saveMock).toHaveBeenCalled();
+      expect(mockRecord.status).toBe('Hadir');
+    });
   });
-  
+
   describe('getAttendanceToday', () => {
     test('should return 404 if no record is found for today', async () => {
       Attendance.findOne.mockResolvedValue(null);
@@ -143,15 +141,14 @@ describe('Attendance', () => {
       const mockRecord = { _id: 'att1', notes: 'Keperluan keluarga' };
       Attendance.findById.mockResolvedValue(mockRecord);
       Attendance.findByIdAndUpdate.mockResolvedValue({});
-  
+
       await request(app)
         .delete('/api/attendance/att1/reject-leave')
         .set('Authorization', 'Bearer admin-token');
-  
+
       const updateCall = Attendance.findByIdAndUpdate.mock.calls[0][1];
       expect(updateCall.status).toBe('Tidak Hadir');
       expect(updateCall.notes).toContain('Ditolak oleh admin');
     });
   });
-
 });

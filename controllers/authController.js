@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import User from "../models/User.js";
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
@@ -32,7 +32,7 @@ export const login = async (req, res) => {
     });
 
     res.json({
-      message: "Login successful",
+      message: 'Login successful',
       token,
       user: payload,
     });

@@ -4,10 +4,10 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import attendanceRoutes from './routes/attendanceRoutes.js'
+import attendanceRoutes from './routes/attendanceRoutes.js';
 import attendanceGeneratorRoutes from './routes/attendanceGeneratorRoutes.js';
-import announcementRoutes from './routes/announcementRoutes.js'
-import exportRoutes from './routes/exportRoutes.js'
+import announcementRoutes from './routes/announcementRoutes.js';
+import exportRoutes from './routes/exportRoutes.js';
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ app.set('trust proxy', true);
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://eabsensi-dkp3bjm-admin.vercel.app' 
+  'https://eabsensi-dkp3bjm-admin.vercel.app',
 ];
 
 const corsOptions = {
@@ -41,9 +41,9 @@ app.get('/', (req, res) => {
 });
 
 mongoose.connect(process.env.DATABASE)
-  .then(() => console.log("Database connected successfully."))
-  .catch(err => {
-    console.error("Database connection error: ", err.message);
+  .then(() => console.log('Database connected successfully.'))
+  .catch((err) => {
+    console.error('Database connection error: ', err.message);
     process.exit(1);
   });
 
@@ -55,7 +55,7 @@ app.use('/api', userRoutes);
 app.use('/api', exportRoutes);
 
 app.use((req, res) => {
-  res.status(404).json({ message: "Endpoint not found." });
+  res.status(404).json({ message: 'Endpoint not found.' });
 });
 
 app.listen(port, () => {

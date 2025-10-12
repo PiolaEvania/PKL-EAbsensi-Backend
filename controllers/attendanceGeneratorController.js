@@ -1,6 +1,6 @@
+import moment from 'moment-timezone';
 import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
-import moment from 'moment-timezone';
 import { TIMEZONE } from '../config/constants.js';
 
 export const generateAttendanceRecords = async (req, res) => {
@@ -17,24 +17,23 @@ export const generateAttendanceRecords = async (req, res) => {
     const end = moment.tz(user.internship_end, TIMEZONE).startOf('day');
     const expectedDates = [];
     for (let m = start.clone(); m.isSameOrBefore(end); m.add(1, 'days')) {
-      if (m.day() !== 0 && m.day() !== 6) 
-      {
+      if (m.day() !== 0 && m.day() !== 6) {
         expectedDates.push(m.format('YYYY-MM-DD'));
       }
     }
 
     const existingRecords = await Attendance.find({ user_id: userId }, 'date -_id');
-    const existingDates = new Set(existingRecords.map(record => record.date));
+    const existingDates = new Set(existingRecords.map((record) => record.date));
 
-    const missingDates = expectedDates.filter(date => !existingDates.has(date));
+    const missingDates = expectedDates.filter((date) => !existingDates.has(date));
 
     if (missingDates.length === 0) {
       return res.status(200).json({ message: 'Jadwal absensi sudah lengkap. Tidak ada yang perlu ditambahkan.' });
     }
 
-    const recordsToInsert = missingDates.map(date => ({
+    const recordsToInsert = missingDates.map((date) => ({
       user_id: userId,
-      date: date,
+      date,
       status: 'Tidak Hadir',
       notes: null,
       check_in_time: null,
@@ -45,16 +44,15 @@ export const generateAttendanceRecords = async (req, res) => {
       mocked_location: false,
       updated_by: null,
     }));
-    
+
     await Attendance.insertMany(recordsToInsert);
 
     res.status(201).json({
       message: `Berhasil memulihkan ${recordsToInsert.length} jadwal absensi yang hilang.`,
       total_added: recordsToInsert.length,
     });
-
   } catch (error) {
-    console.error("Generate attendance error:", error);
+    console.error('Generate attendance error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

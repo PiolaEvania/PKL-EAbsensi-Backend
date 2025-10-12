@@ -10,7 +10,7 @@ import {
   requestLeave,
   getLeaveRequests,
   approveLeaveRequest,
-  rejectLeaveRequest
+  rejectLeaveRequest,
 } from '../controllers/attendanceController.js';
 import { verifyToken, isAdmin, isOwnerOrAdmin } from '../middlewares/auth.js';
 
@@ -20,7 +20,7 @@ router.use(verifyToken);
 
 router.post('/users/:userId/attendance/:attendanceId', isOwnerOrAdmin, markAttendanceById);
 router.get('/users/:userId/attendance', isOwnerOrAdmin, getAttendanceList);
-router.get('/users/:userId/attendance/today', isOwnerOrAdmin, getAttendanceToday)
+router.get('/users/:userId/attendance/today', isOwnerOrAdmin, getAttendanceToday);
 router.get('/users/:userId/attendance/history', isOwnerOrAdmin, getAttendanceHistory);
 router.get('/users/:userId/attendance/:attendanceId', isOwnerOrAdmin, getAttendanceDetail);
 router.put('/users/:userId/attendance/:attendanceId/request-leave', isOwnerOrAdmin, requestLeave);

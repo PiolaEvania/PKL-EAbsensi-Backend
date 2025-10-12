@@ -1,9 +1,9 @@
 import request from 'supertest';
 import express from 'express';
-import { login } from '../controllers/authController.js';
-import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { login } from '../controllers/authController.js';
+import User from '../models/User.js';
 
 jest.mock('../models/User.js');
 jest.mock('bcryptjs');
@@ -14,7 +14,6 @@ app.use(express.json());
 app.post('/api/login', login);
 
 describe('POST /api/login', () => {
-  
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -23,7 +22,7 @@ describe('POST /api/login', () => {
     const response = await request(app)
       .post('/api/login')
       .send({ password: 'password123' });
-    
+
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe('Username and password are required');
   });
@@ -46,7 +45,7 @@ describe('POST /api/login', () => {
       name: 'Test User',
       username: 'testuser',
       password_hash: 'hashed_password',
-      role: 'user'
+      role: 'user',
     };
     User.findOne.mockResolvedValue(mockUser);
     bcrypt.compare.mockResolvedValue(false);
@@ -66,7 +65,7 @@ describe('POST /api/login', () => {
       name: 'Test User',
       username: 'testuser',
       password_hash: 'hashed_password',
-      role: 'user'
+      role: 'user',
     };
     User.findOne.mockResolvedValue(mockUser);
     bcrypt.compare.mockResolvedValue(true);
@@ -77,9 +76,11 @@ describe('POST /api/login', () => {
       .send({ username: 'testuser', password: 'correctpassword' });
 
     expect(jwt.sign).toHaveBeenCalledWith(
-      { id: '1', name: 'Test User', username: 'testuser', role: 'user' },
+      {
+        id: '1', name: 'Test User', username: 'testuser', role: 'user',
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '1d' },
     );
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe('Login successful');

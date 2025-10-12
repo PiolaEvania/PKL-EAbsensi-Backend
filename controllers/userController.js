@@ -1,6 +1,6 @@
-import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import moment from 'moment-timezone';
+import User from '../models/User.js';
 import { TIMEZONE } from '../config/constants.js';
 
 // GET /api/users?status=[active|finished]
@@ -16,15 +16,14 @@ export const getAllUsers = async (req, res) => {
     } else {
       query.$or = [
         { internship_end: { $gte: today } },
-        { internship_end: null }
+        { internship_end: null },
       ];
     }
-    
+
     query.role = 'user';
 
     const users = await User.find(query, '-password_hash').sort({ name: 1 });
     res.json(users);
-
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -43,14 +42,16 @@ export const getUserById = async (req, res) => {
 
 // POST /api/users
 export const createUser = async (req, res) => {
-  const { name, username, password, email, phone, role, internship_start, internship_end } = req.body;
+  const {
+    name, username, password, email, phone, role, internship_start, internship_end,
+  } = req.body;
 
   try {
     if (internship_start && internship_end && moment(internship_start).isAfter(internship_end)) {
       return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
     }
 
-    let user = await User.findOne({ $or: [{ username }, { email }] });
+    const user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) return res.status(400).json({ message: 'Username or email already exists' });
 
     const salt = await bcrypt.genSalt(10);
@@ -77,7 +78,7 @@ export const createUser = async (req, res) => {
 // PUT /api/users/:id
 export const updateUser = async (req, res) => {
   const { password, ...otherData } = req.body;
-  let updateData = { ...otherData };
+  const updateData = { ...otherData };
 
   try {
     const { internship_start, internship_end } = updateData;

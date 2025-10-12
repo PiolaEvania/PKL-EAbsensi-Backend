@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const announcementSchema = new mongoose.Schema({
   content: {
@@ -18,9 +18,9 @@ const announcementSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-  }
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 export default mongoose.model('Announcement', announcementSchema);

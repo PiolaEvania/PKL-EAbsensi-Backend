@@ -6,8 +6,8 @@ import * as userController from '../controllers/userController.js';
 
 jest.mock('../models/User.js');
 jest.mock('bcryptjs', () => ({
-    genSalt: jest.fn().mockResolvedValue(10),
-    hash: jest.fn().mockResolvedValue('hashed_password'),
+  genSalt: jest.fn().mockResolvedValue(10),
+  hash: jest.fn().mockResolvedValue('hashed_password'),
 }));
 
 jest.mock('../middlewares/auth.js', () => ({
@@ -20,7 +20,6 @@ app.use(express.json());
 app.use('/api', userRoutes);
 
 describe('User', () => {
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -45,7 +44,7 @@ describe('User', () => {
         sort: jest.fn().mockResolvedValue([]),
       };
       User.find.mockReturnValue(mockChain);
-      
+
       await request(app).get('/api/users');
 
       const queryArgument = User.find.mock.calls[0][0];
@@ -59,11 +58,14 @@ describe('User', () => {
       const response = await request(app)
         .post('/api/users')
         .send({
-          name: 'Test', username: 'test', password: '123', email: 't@t.com',
+          name: 'Test',
+          username: 'test',
+          password: '123',
+          email: 't@t.com',
           internship_start: '2025-12-01',
           internship_end: '2025-11-01',
         });
-      
+
       expect(response.statusCode).toBe(400);
       expect(response.body.message).toBe('Tanggal mulai magang tidak boleh melebihi tanggal selesai.');
     });
@@ -74,11 +76,14 @@ describe('User', () => {
       const response = await request(app)
         .post('/api/users')
         .send({
-          name: 'Test', username: 'existinguser', password: '123', email: 't@t.com',
+          name: 'Test',
+          username: 'existinguser',
+          password: '123',
+          email: 't@t.com',
           internship_start: '2025-11-01',
           internship_end: '2025-12-01',
         });
-      
+
       expect(response.statusCode).toBe(400);
       expect(response.body.message).toBe('Username or email already exists');
     });
@@ -92,7 +97,7 @@ describe('User', () => {
           internship_start: '2025-12-01',
           internship_end: '2025-11-01',
         });
-        
+
       expect(response.statusCode).toBe(400);
       expect(response.body.message).toBe('Tanggal mulai magang tidak boleh melebihi tanggal selesai.');
     });
@@ -111,21 +116,21 @@ describe('User', () => {
 
   describe('deleteUser', () => {
     test('should return 404 if user to delete is not found', async () => {
-        User.findByIdAndDelete.mockResolvedValue(null);
+      User.findByIdAndDelete.mockResolvedValue(null);
 
-        const response = await request(app).delete('/api/users/nonexistentid');
+      const response = await request(app).delete('/api/users/nonexistentid');
 
-        expect(response.statusCode).toBe(404);
-        expect(response.body.message).toBe('User not found');
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe('User not found');
     });
 
     test('should return 200 on successful deletion', async () => {
-        User.findByIdAndDelete.mockResolvedValue({ _id: 'deletedid' });
+      User.findByIdAndDelete.mockResolvedValue({ _id: 'deletedid' });
 
-        const response = await request(app).delete('/api/users/deletedid');
+      const response = await request(app).delete('/api/users/deletedid');
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body.message).toBe('User deleted successfully');
+      expect(response.statusCode).toBe(200);
+      expect(response.body.message).toBe('User deleted successfully');
     });
   });
 });

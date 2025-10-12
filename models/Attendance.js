@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const attendanceSchema = new mongoose.Schema({
   user_id: {
@@ -45,7 +45,7 @@ const attendanceSchema = new mongoose.Schema({
     default: null,
   },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 attendanceSchema.index({ user_id: 1, date: 1 }, { unique: true });

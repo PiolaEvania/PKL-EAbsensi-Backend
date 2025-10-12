@@ -28,26 +28,25 @@ const mockUser = {
 };
 
 const mockAttendance = [
-  { 
-    date: '2025-10-01', 
-    check_in_time: '2025-10-01T01:30:00.000Z', 
-    status: 'Hadir', 
-    notes: '' 
+  {
+    date: '2025-10-01',
+    check_in_time: '2025-10-01T01:30:00.000Z',
+    status: 'Hadir',
+    notes: '',
   },
-  { 
-    date: '2025-10-02', 
-    check_in_time: null, 
-    status: 'Izin', 
-    notes: 'Sakit' 
+  {
+    date: '2025-10-02',
+    check_in_time: null,
+    status: 'Izin',
+    notes: 'Sakit',
   },
 ];
 
 describe('GET /api/users/:userId/export', () => {
-
   beforeEach(() => {
     User.findById.mockResolvedValue(mockUser);
     Attendance.find.mockReturnValue({
-      sort: jest.fn().mockResolvedValue(mockAttendance)
+      sort: jest.fn().mockResolvedValue(mockAttendance),
     });
   });
 
@@ -70,7 +69,7 @@ describe('GET /api/users/:userId/export', () => {
 
   test('should generate a PDF file when format=pdf', async () => {
     const response = await request(app).get('/api/users/user123/export?format=pdf');
-    
+
     expect(User.findById).toHaveBeenCalledWith('user123');
     expect(Attendance.find).toHaveBeenCalledWith({ user_id: 'user123' });
     expect(response.statusCode).toBe(200);

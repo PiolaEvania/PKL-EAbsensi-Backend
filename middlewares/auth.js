@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -31,7 +31,7 @@ export const isOwnerOrAdmin = (req, res, next) => {
     return next();
   }
 
-  return res.status(403).json({ 
-      message: 'Forbidden. You do not have access to this resource. ID mismatch.' 
+  return res.status(403).json({
+    message: 'Forbidden. You do not have access to this resource. ID mismatch.',
   });
 };

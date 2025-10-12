@@ -1,5 +1,5 @@
-import Attendance from '../models/Attendance.js';
 import moment from 'moment-timezone';
+import Attendance from '../models/Attendance.js';
 import { OFFICE_COORDINATES, GEOFENCE_RADIUS_METERS, TIMEZONE } from '../config/constants.js';
 
 const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
@@ -7,10 +7,9 @@ const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
   const toRad = (deg) => deg * (Math.PI / 180);
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+    * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -18,7 +17,7 @@ const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
 // POST /api/users/:userId/attendance/:attendanceId
 export const markAttendanceById = async (req, res) => {
   const { attendanceId } = req.params;
-  const { latitude, longitude, android_id} = req.body;
+  const { latitude, longitude, android_id } = req.body;
 
   try {
     const attendanceRecord = await Attendance.findById(attendanceId);
@@ -28,16 +27,16 @@ export const markAttendanceById = async (req, res) => {
     }
 
     if (attendanceRecord.user_id.toString() !== req.user.id) {
-        return res.status(403).json({ message: 'Anda tidak memiliki izin untuk mengubah absensi ini.' });
+      return res.status(403).json({ message: 'Anda tidak memiliki izin untuk mengubah absensi ini.' });
     }
 
-    const today = moment.tz(TIMEZONE).format('YYYY-MM-DD'); 
+    const today = moment.tz(TIMEZONE).format('YYYY-MM-DD');
     const recordDate = attendanceRecord.date;
 
-    if (today !== recordDate) { 
+    if (today !== recordDate) {
       return res.status(400).json({ message: 'Anda hanya bisa melakukan absensi untuk jadwal hari ini.' });
     }
-    
+
     if (attendanceRecord.status !== 'Tidak Hadir') {
       return res.status(400).json({ message: 'Anda sudah melakukan absensi hari ini.' });
     }
@@ -50,8 +49,10 @@ export const markAttendanceById = async (req, res) => {
     }
 
     const distance = getDistanceFromLatLonInMeters(
-      latitude, longitude,
-      OFFICE_COORDINATES.latitude, OFFICE_COORDINATES.longitude
+      latitude,
+      longitude,
+      OFFICE_COORDINATES.latitude,
+      OFFICE_COORDINATES.longitude,
     );
 
     const status = distance <= GEOFENCE_RADIUS_METERS ? 'Hadir' : 'Di Luar Area';
@@ -66,7 +67,6 @@ export const markAttendanceById = async (req, res) => {
 
     await attendanceRecord.save();
     res.status(200).json({ message: `Absensi berhasil: ${status}`, data: attendanceRecord });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -77,7 +77,7 @@ export const markAttendanceById = async (req, res) => {
 export const getAttendanceList = async (req, res) => {
   const { userId } = req.params;
   const today = moment.tz(TIMEZONE).format('YYYY-MM-DD');
-  
+
   try {
     const records = await Attendance.find({ user_id: userId, date: { $lte: today } }).sort({ date: 'desc' });
     res.json(records);
@@ -103,7 +103,6 @@ export const getAttendanceToday = async (req, res) => {
     }
 
     res.status(200).json(record);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -126,9 +125,9 @@ export const getAttendanceDetail = async (req, res) => {
   try {
     const record = await Attendance.findById(req.params.attendanceId);
     if (!record) return res.status(404).json({ message: 'Attendance record not found' });
-    
+
     if (record.user_id.toString() !== req.params.userId && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Forbidden. This attendance record does not belong to the specified user.' });
+      return res.status(403).json({ message: 'Forbidden. This attendance record does not belong to the specified user.' });
     }
 
     res.json(record);
@@ -144,11 +143,11 @@ export const updateAttendance = async (req, res) => {
       ...req.body,
       updated_by: req.user.id,
     };
-    
+
     const updatedRecord = await Attendance.findByIdAndUpdate(
       req.params.attendanceId,
       updateData,
-      { new: true }
+      { new: true },
     );
 
     if (!updatedRecord) return res.status(404).json({ message: 'Attendance record not found' });
@@ -186,7 +185,7 @@ export const requestLeave = async (req, res) => {
       return res.status(403).json({ message: 'Anda tidak berhak mengubah absensi ini.' });
     }
     if (attendanceRecord.status !== 'Tidak Hadir') {
-        return res.status(400).json({ message: `Tidak bisa mengajukan izin karena status absensi saat ini adalah '${attendanceRecord.status}'.` });
+      return res.status(400).json({ message: `Tidak bisa mengajukan izin karena status absensi saat ini adalah '${attendanceRecord.status}'.` });
     }
 
     attendanceRecord.status = 'Izin';
@@ -201,8 +200,8 @@ export const requestLeave = async (req, res) => {
 export const getLeaveRequests = async (req, res) => {
   try {
     const leaveRequests = await Attendance.find({ status: 'Izin' })
-    .populate('user_id', 'name username')
-    .sort({ date: 1 }); 
+      .populate('user_id', 'name username')
+      .sort({ date: 1 });
     res.status(200).json(leaveRequests);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -220,14 +219,14 @@ export const approveLeaveRequest = async (req, res) => {
 
     const updatedRecord = await Attendance.findByIdAndUpdate(
       attendanceId,
-      { 
+      {
         status: 'Izin Disetujui',
         notes: newNotes,
-        updated_by: req.user.id 
+        updated_by: req.user.id,
       },
-      { new: true }
+      { new: true },
     );
-    
+
     res.status(200).json({ message: 'Izin berhasil disetujui.', data: updatedRecord });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -246,14 +245,14 @@ export const rejectLeaveRequest = async (req, res) => {
 
     const updatedRecord = await Attendance.findByIdAndUpdate(
       attendanceId,
-      { 
+      {
         status: 'Tidak Hadir',
         notes: newNotes,
-        updated_by: req.user.id 
+        updated_by: req.user.id,
       },
-      { new: true }
+      { new: true },
     );
-    
+
     res.status(200).json({ message: 'Pengajuan izin telah ditolak.', data: updatedRecord });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
