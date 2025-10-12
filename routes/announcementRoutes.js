@@ -3,7 +3,8 @@ import {
     createAnnouncement, 
     getActiveAnnouncements,
     updateAnnouncement,
-    deleteAnnouncement
+    deleteAnnouncement,
+    cleanupExpiredAnnouncements
 } from '../controllers/announcementController.js';
 import { verifyToken, isAdmin } from '../middlewares/auth.js';
 
@@ -14,5 +15,6 @@ router.get('/announcements/active', verifyToken, getActiveAnnouncements);
 router.post('/announcements', verifyToken, isAdmin, createAnnouncement);
 router.put('/announcements/:announcementId', verifyToken, isAdmin, updateAnnouncement); 
 router.delete('/announcements/:announcementId', verifyToken, isAdmin, deleteAnnouncement);
+router.post('/announcements/cleanup', verifyToken, isAdmin, cleanupExpiredAnnouncements);
 
 export default router;

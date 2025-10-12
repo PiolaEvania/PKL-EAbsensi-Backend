@@ -6,5 +6,11 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/app.js" },
     { "src": "/(.*)", "dest": "/app.js" }
+  ],
+  "crons": [
+    {
+      "path": "/api/announcements/cleanup",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

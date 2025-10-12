@@ -78,3 +78,19 @@ export const deleteAnnouncement = async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
+export const cleanupExpiredAnnouncements = async (req, res) => {
+  try {
+const now = moment.tz('Asia/Makassar').toDate();
+
+const result = await Announcement.deleteMany({ end_date: { $lt: now } });
+
+res.status(200).json({
+message: 'Proses pembersihan pengumuman kedaluwarsa selesai.',
+deletedCount: result.deletedCount
+});
+} catch (error) {
+console.error("Error during announcement cleanup:", error);
+res.status(500).json({ message: 'Server error during cleanup' });
+}
+};
