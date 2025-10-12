@@ -4,7 +4,8 @@
   "description": "Attendance system geofencing based for Dinas Ketahanan Pangan, Pertanian, dan Perikanan",
   "main": "app.js",
   "scripts": {
-    "dev": "npx nodemon app.js"
+    "dev": "npx nodemon app.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "author": "PiolaEvania, ZulfaAuliyaAkbar, RidhaniSetiadi",
   "license": "ISC",
@@ -21,5 +22,12 @@
     "nodemon": "^3.1.10",
     "pdfkit": "^0.17.2",
     "vercel": "^46.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "babel-jest": "^30.2.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }
