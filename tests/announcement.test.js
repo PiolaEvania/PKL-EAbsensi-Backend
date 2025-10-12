@@ -114,4 +114,18 @@ describe('Announcement Controller - White Box Test', () => {
       expect(response.body.message).toBe('Pengumuman berhasil dihapus.');
     });
   });
+
+  describe('cleanupExpiredAnnouncements', () => {
+    test('should call deleteMany with the correct query', async () => {
+      Announcement.deleteMany.mockResolvedValue({ deletedCount: 5 });
+
+      const response = await request(app).post('/api/announcements/cleanup');
+
+      const queryArgument = Announcement.deleteMany.mock.calls[0][0];
+      expect(queryArgument).toHaveProperty('end_date');
+      expect(queryArgument.end_date).toHaveProperty('$lt');
+      expect(response.statusCode).toBe(200);
+      expect(response.body.deletedCount).toBe(5);
+    });
+  });
 });
