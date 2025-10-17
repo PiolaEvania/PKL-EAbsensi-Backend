@@ -8,10 +8,6 @@ export const createAnnouncement = async (req, res) => {
     const parsedStartDate = moment.tz(start_date, 'Asia/Makassar').toDate();
     const parsedEndDate = moment.tz(end_date, 'Asia/Makassar').toDate();
 
-    if (parsedStartDate.isAfter(parsedEndDate)) {
-      return res.status(400).json({ message: 'Tanggal selesai tidak boleh sebelum tanggal mulai.' });
-    }
-
     const newAnnouncement = new Announcement({
       content,
       start_date: parsedStartDate,
@@ -46,25 +42,13 @@ export const updateAnnouncement = async (req, res) => {
   const { content, start_date, end_date } = req.body;
 
   try {
-    const existingAnnouncement = await Announcement.findById(announcementId);
-    if (!existingAnnouncement) {
-      return res.status(404).json({ message: 'Pengumuman tidak ditemukan.' });
-    }
-
     const updateData = { content };
 
-    const finalStartDate = start_date ? moment.tz(start_date, 'Asia/Makassar') : moment(existingAnnouncement.start_date);
-    const finalEndDate = end_date ? moment.tz(end_date, 'Asia/Makassar') : moment(existingAnnouncement.end_date);
-
-    if (finalStartDate.isAfter(finalEndDate)) {
-      return res.status(400).json({ message: 'Tanggal selesai tidak boleh sebelum tanggal mulai.' });
-    }
-
     if (start_date) {
-      updateData.start_date = finalStartDate.toDate();
+      updateData.start_date = moment.tz(start_date, 'Asia/Makassar').toDate();
     }
     if (end_date) {
-      updateData.end_date = finalEndDate.toDate();
+      updateData.end_date = moment.tz(end_date, 'Asia/Makassar').toDate();
     }
 
     const updatedAnnouncement = await Announcement.findByIdAndUpdate(
