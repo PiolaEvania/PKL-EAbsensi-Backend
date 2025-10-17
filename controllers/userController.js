@@ -152,6 +152,11 @@ export const updateUser = async (req, res) => {
       delete updateData.password;
     }
 
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     if (updateData.internship_end) {
       const newEndDate = moment.tz(updateData.internship_end, TIMEZONE).format('YYYY-MM-DD');
       await Attendance.deleteMany({ user_id: id, date: { $gt: newEndDate } });
