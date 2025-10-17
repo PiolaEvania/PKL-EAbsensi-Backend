@@ -69,8 +69,18 @@ export const createUser = async (req, res) => {
       }
     }
 
-    if (internship_start && internship_end && moment(internship_start).isAfter(internship_end)) {
-      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
+    if (internship_start && internship_end) {
+      const start = moment(internship_start);
+      const end = moment(internship_end);
+
+      if (start.isAfter(end)) {
+        return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+      }
+
+      const maxEndDate = start.clone().add(6, 'months');
+      if (end.isAfter(maxEndDate)) {
+        return res.status(400).json({ message: 'Durasi magang tidak boleh lebih dari 6 bulan.' });
+      }
     }
 
     const today = moment.tz(TIMEZONE).startOf('day');
