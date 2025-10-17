@@ -18,7 +18,6 @@ app.use(express.json());
 app.use('/api', announcementRoutes);
 
 describe('Announcement Controller - White Box Test', () => {
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -27,13 +26,13 @@ describe('Announcement Controller - White Box Test', () => {
     test('should create a new announcement and return 201', async () => {
       const saveMock = jest.fn().mockResolvedValue(true);
       Announcement.mockImplementation(() => ({
-        save: saveMock
+        save: saveMock,
       }));
 
       const newAnnouncement = {
-        content: "Test Content",
-        start_date: "2025-10-10T10:00:00",
-        end_date: "2025-10-11T10:00:00"
+        content: 'Test Content',
+        start_date: '2025-10-10T10:00:00',
+        end_date: '2025-10-11T10:00:00',
       };
 
       const response = await request(app)
@@ -49,7 +48,7 @@ describe('Announcement Controller - White Box Test', () => {
   describe('getActiveAnnouncements', () => {
     test('should call Announcement.find with correct date range query', async () => {
       const mockChain = {
-        sort: jest.fn().mockResolvedValue([])
+        sort: jest.fn().mockResolvedValue([]),
       };
       Announcement.find.mockReturnValue(mockChain);
 
@@ -66,11 +65,11 @@ describe('Announcement Controller - White Box Test', () => {
   describe('updateAnnouncement', () => {
     test('should return 404 if announcement to update is not found', async () => {
       Announcement.findByIdAndUpdate.mockResolvedValue(null);
-      
+
       const response = await request(app)
         .put('/api/announcements/nonexistentid')
         .send({ content: 'Updated Content' });
-        
+
       expect(response.statusCode).toBe(404);
       expect(response.body.message).toBe('Pengumuman tidak ditemukan.');
     });
@@ -79,9 +78,9 @@ describe('Announcement Controller - White Box Test', () => {
       Announcement.findByIdAndUpdate.mockResolvedValue({ _id: 'ann1' });
 
       const updatePayload = {
-        content: "Updated Content",
-        start_date: "2025-11-01T00:00:00",
-        end_date: "2025-11-02T00:00:00"
+        content: 'Updated Content',
+        start_date: '2025-11-01T00:00:00',
+        end_date: '2025-11-02T00:00:00',
       };
 
       await request(app)
@@ -89,7 +88,7 @@ describe('Announcement Controller - White Box Test', () => {
         .send(updatePayload);
 
       const updateCall = Announcement.findByIdAndUpdate.mock.calls[0][1];
-      expect(updateCall.content).toBe("Updated Content");
+      expect(updateCall.content).toBe('Updated Content');
       expect(updateCall.start_date).toBeInstanceOf(Date);
       expect(updateCall.end_date).toBeInstanceOf(Date);
     });
@@ -98,7 +97,7 @@ describe('Announcement Controller - White Box Test', () => {
   describe('deleteAnnouncement', () => {
     test('should return 404 if announcement to delete is not found', async () => {
       Announcement.findByIdAndDelete.mockResolvedValue(null);
-      
+
       const response = await request(app).delete('/api/announcements/nonexistentid');
 
       expect(response.statusCode).toBe(404);

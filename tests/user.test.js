@@ -53,6 +53,23 @@ describe('User', () => {
     });
   });
 
+  describe('getUserById', () => {
+    test('should return a user if found', async () => {
+      const mockUser = { _id: 'someid', name: 'Test User' };
+      User.findById.mockResolvedValue(mockUser);
+      const response = await request(app).get('/api/users/someid');
+      expect(response.statusCode).toBe(200);
+      expect(response.body.name).toBe('Test User');
+    });
+
+    test('should return 404 if user is not found', async () => {
+      User.findById.mockResolvedValue(null);
+      const response = await request(app).get('/api/users/nonexistentid');
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe('User not found');
+    });
+  });
+
   describe('createUser', () => {
     test('should return 400 if internship start date is after end date', async () => {
       const response = await request(app)

@@ -120,6 +120,38 @@ describe('Attendance', () => {
     });
   });
 
+  describe('updateAttendance', () => {
+    test('should update an attendance record successfully', async () => {
+      const mockUpdatedRecord = {
+        _id: 'att1',
+        status: 'Hadir',
+        notes: 'Updated note',
+      };
+      Attendance.findByIdAndUpdate.mockResolvedValue(mockUpdatedRecord);
+
+      const response = await request(app)
+        .put('/api/users/user123/attendance/att1')
+        .set('Authorization', 'Bearer admin-token')
+        .send({ status: 'Hadir', notes: 'Updated note' });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.message).toBe('Attendance updated successfully');
+      expect(response.body.data.status).toBe('Hadir');
+    });
+
+    test('should return 404 if attendance record to update is not found', async () => {
+      Attendance.findByIdAndUpdate.mockResolvedValue(null);
+
+      const response = await request(app)
+        .put('/api/users/user123/attendance/nonexistent-id')
+        .set('Authorization', 'Bearer admin-token')
+        .send({ status: 'Hadir' });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe('Attendance record not found');
+    });
+  });
+
   describe('approveLeaveRequest', () => {
     test('should update status and notes correctly', async () => {
       const mockRecord = { _id: 'att1', notes: 'Sakit' };
@@ -149,6 +181,31 @@ describe('Attendance', () => {
       const updateCall = Attendance.findByIdAndUpdate.mock.calls[0][1];
       expect(updateCall.status).toBe('Tidak Hadir');
       expect(updateCall.notes).toContain('Ditolak oleh admin');
+    });
+  });
+
+  describe('deleteAttendance', () => {
+    test('should return 404 if attendance record to delete is not found', async () => {
+      Attendance.findByIdAndDelete.mockResolvedValue(null);
+
+      const response = await request(app)
+        .delete('/api/users/user123/attendance/nonexistent-att-id')
+        .set('Authorization', 'Bearer admin-token');
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe('Attendance record not found');
+    });
+
+    test('should return 200 on successful deletion', async () => {
+      Attendance.findByIdAndDelete.mockResolvedValue({ _id: 'att1' });
+
+      const response = await request(app)
+        .delete('/api/users/user123/attendance/att1')
+        .set('Authorization', 'Bearer admin-token');
+
+      expect(Attendance.findByIdAndDelete).toHaveBeenCalledWith('att1');
+      expect(response.statusCode).toBe(200);
+      expect(response.body.message).toBe('Attendance record deleted');
     });
   });
 });
