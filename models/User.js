@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
-    match: [/^[a-z]+$/, 'Username hanya boleh berisi huruf kecil tanpa spasi atau angka'],
+    match: [/^[a-z0-9]+$/, 'Username hanya boleh berisi perpaduan huruf kecil dan angka, tanpa spasi.'],
   },
   password_hash: {
     type: String,

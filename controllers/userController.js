@@ -55,8 +55,8 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
     }
 
-    if (!/^[a-z]+$/.test(username)) {
-      return res.status(400).json({ message: 'Username hanya boleh berisi huruf kecil tanpa spasi atau angka.' });
+    if (!/^[a-z0-9]+$/.test(username)) {
+      return res.status(400).json({ message: 'Username hanya boleh berisi perpaduan huruf kecil dan angka, tanpa spasi.' });
     }
 
     if (phone) {
@@ -108,8 +108,8 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
     }
 
-    if (username && !/^[a-z]+$/.test(username)) {
-      return res.status(400).json({ message: 'Username hanya boleh berisi huruf kecil tanpa spasi atau angka.' });
+    if (username && !/^[a-z0-9]+$/.test(username)) {
+      return res.status(400).json({ message: 'Username hanya boleh berisi perpaduan huruf kecil dan angka, tanpa spasi.' });
     }
 
     if (phone) {
