@@ -4,12 +4,14 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    match: [/^[a-zA-Z\s]+$/, 'Nama hanya boleh berisi huruf dan spasi'],
   },
   username: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
+    match: [/^[a-z]+$/, 'Username hanya boleh berisi huruf kecil tanpa spasi atau angka'],
   },
   password_hash: {
     type: String,
@@ -23,6 +25,8 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
+    match: [/^[0-9]+$/, 'Nomor telepon hanya boleh berisi angka'],
+    maxlength: [13, 'Nomor telepon maksimal 13 digit'],
   },
   role: {
     type: String,
