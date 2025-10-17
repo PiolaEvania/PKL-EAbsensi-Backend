@@ -142,7 +142,19 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
     }
 
-    if (updateData.internship_start && updateData.internship_end && moment(updateData.internship_start).isAfter(updateData.internship_end)) return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+    if (updateData.internship_start && updateData.internship_end) {
+      const start = moment(updateData.internship_start);
+      const end = moment(updateData.internship_end);
+
+      if (start.isAfter(end)) {
+        return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+      }
+
+      const maxEndDate = start.clone().add(6, 'months');
+      if (end.isAfter(maxEndDate)) {
+        return res.status(400).json({ message: 'Durasi magang tidak boleh lebih dari 6 bulan.' });
+      }
+    }
 
     if (username || email) {
       const query = { $or: [] };
