@@ -73,6 +73,11 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
     }
 
+    const today = moment.tz(TIMEZONE).startOf('day');
+    if (internship_start && moment(internship_start).isBefore(today)) {
+      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh tanggal yang sudah lewat.' });
+    }
+
     const user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) return res.status(400).json({ message: 'Username or email already exists' });
 
