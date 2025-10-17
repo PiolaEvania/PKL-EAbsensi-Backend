@@ -63,8 +63,8 @@ export const createUser = async (req, res) => {
       if (!/^[0-9]+$/.test(phone)) {
         return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
       }
-      if (phone.length < 11 || phone.length > 13) {
-        return res.status(400).json({ message: 'Nomor telepon harus memiliki 11 hingga 13 digit.' });
+      if (phone.length > 13) {
+        return res.status(400).json({ message: 'Nomor telepon maksimal 13 digit.' });
       }
     }
 
@@ -116,8 +116,8 @@ export const updateUser = async (req, res) => {
       if (!/^[0-9]+$/.test(phone)) {
         return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
       }
-      if (phone.length < 11 || phone.length > 13) {
-        return res.status(400).json({ message: 'Nomor telepon harus memiliki 11 hingga 13 digit.' });
+      if (phone.length > 13) {
+        return res.status(400).json({ message: 'Nomor telepon maksimal 13 digit.' });
       }
     }
 
