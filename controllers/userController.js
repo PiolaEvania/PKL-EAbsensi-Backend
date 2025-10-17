@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import moment from 'moment-timezone';
 import User from '../models/User.js';
+import Attendance from '../models/Attendance.js';
 import { TIMEZONE } from '../config/constants.js';
 
 // GET /api/users?status=[active|finished]
@@ -98,8 +99,9 @@ export const createUser = async (req, res) => {
 
 // PUT /api/users/:id
 export const updateUser = async (req, res) => {
+  const { id } = req.params;
   const {
-    password, name, username, phone, ...otherData
+    password, name, username, email, phone, ...otherData
   } = req.body;
   const updateData = { ...otherData };
 
@@ -125,14 +127,23 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
     }
 
+    if (updateData.internship_start && updateData.internship_end && moment(updateData.internship_start).isAfter(updateData.internship_end)) return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+
+    if (username || email) {
+      const query = { $or: [] };
+      if (username) query.$or.push({ username });
+      if (email) query.$or.push({ email });
+
+      const existingUser = await User.findOne({ ...query, _id: { $ne: id } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username atau email sudah digunakan oleh peserta lain.' });
+      }
+    }
+
     if (name) updateData.name = name;
     if (username) updateData.username = username;
+    if (email) updateData.email = email;
     if (phone) updateData.phone = phone;
-
-    const { internship_start, internship_end } = updateData;
-    if (internship_start && internship_end && moment(internship_start).isAfter(internship_end)) {
-      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh melebihi tanggal selesai.' });
-    }
 
     if (password && password.length > 0) {
       const salt = await bcrypt.genSalt(10);
@@ -141,11 +152,18 @@ export const updateUser = async (req, res) => {
       delete updateData.password;
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (updateData.internship_end) {
+      const newEndDate = moment.tz(updateData.internship_end, TIMEZONE).format('YYYY-MM-DD');
+      await Attendance.deleteMany({ user_id: id, date: { $gt: newEndDate } });
+    }
+    if (updateData.internship_start) {
+      const newStartDate = moment.tz(updateData.internship_start, TIMEZONE).format('YYYY-MM-DD');
+      await Attendance.deleteMany({ user_id: id, date: { $lt: newStartDate } });
+    }
 
-    res.json({ message: 'User updated successfully' });
+    res.json({ message: 'Data peserta berhasil diperbarui.' });
   } catch (error) {
+    console.error('Error updating user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -154,8 +172,12 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
+
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ message: 'User deleted successfully' });
+
+    await Attendance.deleteMany({ user_id: req.params.id });
+
+    res.json({ message: `User ${user.name} deleted successfully` });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
