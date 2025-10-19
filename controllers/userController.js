@@ -73,6 +73,20 @@ export const createUser = async (req, res) => {
       }
     }
 
+    if (internship_start) {
+      const start = moment(internship_start);
+      if (start.day() === 0 || start.day() === 6) {
+        return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+      }
+    }
+
+    if (internship_end) {
+      const end = moment(internship_end);
+      if (end.day() === 0 || end.day() === 6) {
+        return res.status(400).json({ message: 'Tanggal selesai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+      }
+    }
+
     if (internship_start && internship_end) {
       const start = moment(internship_start);
       const end = moment(internship_end);
@@ -148,6 +162,20 @@ export const updateUser = async (req, res) => {
 
     if (password && (password.length < 6 || password.length > 10)) {
       return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
+    }
+
+    if (updateData.internship_start) {
+      const start = moment(updateData.internship_start);
+      if (start.day() === 0 || start.day() === 6) {
+        return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+      }
+    }
+
+    if (updateData.internship_end) {
+      const end = moment(updateData.internship_end);
+      if (end.day() === 0 || end.day() === 6) {
+        return res.status(400).json({ message: 'Tanggal selesai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+      }
     }
 
     if (updateData.internship_start && updateData.internship_end) {
