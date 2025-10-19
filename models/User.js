@@ -11,7 +11,15 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
-    match: [/^[a-z0-9]+$/, 'Username hanya boleh berisi perpaduan huruf kecil dan angka, tanpa spasi.'],
+    validate: {
+      validator(value) {
+        const containsValidChars = /^[a-z0-9]+$/.test(value);
+        const containsLetter = /[a-z]/.test(value);
+
+        return containsValidChars && containsLetter;
+      },
+      message: 'Username harus berisi kombinasi huruf atau huruf dengan angka, dan tidak boleh hanya angka.',
+    },
   },
   password_hash: {
     type: String,
