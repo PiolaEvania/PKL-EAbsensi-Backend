@@ -41,6 +41,8 @@ export const getUserById = async (req, res) => {
   }
 };
 
+const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 // POST /api/users
 export const createUser = async (req, res) => {
   const {
@@ -70,12 +72,22 @@ export const createUser = async (req, res) => {
       }
     }
 
+    if (!email) {
+      return res.status(400).json({ message: 'Email wajib diisi.' });
+    }
+    if (email.length > 254) {
+      return res.status(400).json({ message: 'Email terlalu panjang.' });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Format email tidak valid.' });
+    }
+
     if (phone) {
       if (!/^[0-9]+$/.test(phone)) {
         return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
       }
-      if (phone.length > 13) {
-        return res.status(400).json({ message: 'Nomor telepon maksimal 13 digit.' });
+      if (phone.length < 10 || phone.length > 13) {
+        return res.status(400).json({ message: 'Nomor telepon harus memiliki 10 hingga 13 digit.' });
       }
     }
 
@@ -163,12 +175,22 @@ export const updateUser = async (req, res) => {
       }
     }
 
+    if (email) {
+      if (email.length > 254) {
+        return res.status(400).json({ message: 'Email terlalu panjang.' });
+      }
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Format email tidak valid.' });
+      }
+      updateData.email = email;
+    }
+
     if (phone) {
       if (!/^[0-9]+$/.test(phone)) {
         return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
       }
-      if (phone.length > 13) {
-        return res.status(400).json({ message: 'Nomor telepon maksimal 13 digit.' });
+      if (phone.length < 10 || phone.length > 13) {
+        return res.status(400).json({ message: 'Nomor telepon harus memiliki 10 hingga 13 digit.' });
       }
     }
 
