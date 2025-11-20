@@ -55,12 +55,18 @@ export const createUser = async (req, res) => {
     if (!/^[a-zA-Z\s]+$/.test(name)) {
       return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
     }
+    if (name.length > 100) {
+      return res.status(400).json({ message: 'Nama maksimal 100 karakter.' });
+    }
 
     if (username) {
       const containsValidChars = /^[a-z0-9]+$/.test(username);
       const containsLetter = /[a-z]/.test(username);
       if (!containsValidChars || !containsLetter) {
-        return res.status(400).json({ message: 'Username harus kombinasi huruf atau huruf dengan angka, dan tidak boleh hanya angka.' });
+        return res.status(400).json({ message: 'Username harus kombinasi huruf kecil atau huruf kecil dengan angka, dan tidak boleh hanya angka.' });
+      }
+      if (username.length > 20) {
+        return res.status(400).json({ message: 'Username maksimal 20 karakter.' });
       }
     }
 
