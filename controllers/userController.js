@@ -54,10 +54,13 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
     }
 
-    if (!/^[a-zA-Z\s]+$/.test(name)) {
+    if (name && name.trim().length === 0) {
+      return res.status(400).json({ message: 'Nama tidak boleh kosong atau hanya berisi spasi.' });
+    }
+    if (name && !/^[a-zA-Z\s]+$/.test(name)) {
       return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
     }
-    if (name.length > 100) {
+    if (name && name.length > 100) {
       return res.status(400).json({ message: 'Nama maksimal 100 karakter.' });
     }
 
@@ -157,10 +160,13 @@ export const updateUser = async (req, res) => {
   const updateData = { ...otherData };
 
   try {
+    if (name && name.trim().length === 0) {
+      return res.status(400).json({ message: 'Nama tidak boleh kosong atau hanya berisi spasi.' });
+    }
     if (name && !/^[a-zA-Z\s]+$/.test(name)) {
       return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
     }
-    if (name.length > 100) {
+    if (name && name.length > 100) {
       return res.status(400).json({ message: 'Nama maksimal 100 karakter.' });
     }
 
