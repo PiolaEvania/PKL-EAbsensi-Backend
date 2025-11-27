@@ -1,10 +1,12 @@
 import request from 'supertest';
 import express from 'express';
-import userRoutes from '../routes/userRoutes.js';
-import User from '../models/User.js';
 import * as userController from '../controllers/userController.js';
+import User from '../models/User.js';
+import Attendance from '../models/Attendance.js';
 
 jest.mock('../models/User.js');
+jest.mock('../models/Attendance.js');
+
 jest.mock('bcryptjs', () => ({
   genSalt: jest.fn().mockResolvedValue(10),
   hash: jest.fn().mockResolvedValue('hashed_password'),
@@ -17,7 +19,12 @@ jest.mock('../middlewares/auth.js', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/api', userRoutes);
+
+app.get('/api/users', userController.getAllUsers);
+app.get('/api/users/:id', userController.getUserById);
+app.post('/api/users', userController.createUser);
+app.put('/api/users/:id', userController.updateUser);
+app.delete('/api/users/:id', userController.deleteUser);
 
 describe('User', () => {
   afterEach(() => {
@@ -76,15 +83,15 @@ describe('User', () => {
         .post('/api/users')
         .send({
           name: 'Test',
-          username: 'test',
-          password: '123',
+          username: 'testuser',
+          password: 'password',
           email: 't@t.com',
-          internship_start: '2025-12-01',
-          internship_end: '2025-11-01',
+          internship_start: '2026-02-03',
+          internship_end: '2026-01-02',
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe('Tanggal mulai magang tidak boleh melebihi tanggal selesai.');
+      expect(response.body.message).toBe('Tanggal mulai tidak boleh melebihi tanggal selesai.');
     });
 
     test('should return 400 if username or email already exists', async () => {
@@ -95,10 +102,10 @@ describe('User', () => {
         .send({
           name: 'Test',
           username: 'existinguser',
-          password: '123',
+          password: 'password',
           email: 't@t.com',
-          internship_start: '2025-11-01',
-          internship_end: '2025-12-01',
+          internship_start: '2026-01-05',
+          internship_end: '2026-02-05',
         });
 
       expect(response.statusCode).toBe(400);
@@ -111,12 +118,12 @@ describe('User', () => {
       const response = await request(app)
         .put('/api/users/someid')
         .send({
-          internship_start: '2025-12-01',
-          internship_end: '2025-11-01',
+          internship_start: '2026-02-03',
+          internship_end: '2026-01-02',
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe('Tanggal mulai magang tidak boleh melebihi tanggal selesai.');
+      expect(response.body.message).toBe('Tanggal mulai tidak boleh melebihi tanggal selesai.');
     });
 
     test('should return 404 if user to update is not found', async () => {
@@ -142,12 +149,13 @@ describe('User', () => {
     });
 
     test('should return 200 on successful deletion', async () => {
-      User.findByIdAndDelete.mockResolvedValue({ _id: 'deletedid' });
+      User.findByIdAndDelete.mockResolvedValue({ _id: 'deletedid', name: 'Deleted User' });
+      Attendance.deleteMany.mockResolvedValue({});
 
       const response = await request(app).delete('/api/users/deletedid');
 
       expect(response.statusCode).toBe(200);
-      expect(response.body.message).toBe('User deleted successfully');
+      expect(response.body.message).toBe('User Deleted User deleted successfully');
     });
   });
 });
