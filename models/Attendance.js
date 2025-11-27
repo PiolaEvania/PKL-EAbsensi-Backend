@@ -34,6 +34,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   android_id: {
     type: String,
+    default: null,
   },
   mocked_location: {
     type: Boolean,
