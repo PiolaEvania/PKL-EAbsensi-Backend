@@ -86,6 +86,8 @@ describe('User', () => {
           username: 'testuser',
           password: 'password',
           email: 't@t.com',
+          phone: '08123456789',
+          role: 'user',
           internship_start: '2026-02-03',
           internship_end: '2026-01-02',
         });
@@ -104,12 +106,14 @@ describe('User', () => {
           username: 'existinguser',
           password: 'password',
           email: 't@t.com',
+          phone: '08123456789',
+          role: 'user',
           internship_start: '2026-01-05',
           internship_end: '2026-02-05',
         });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe('Username or email already exists');
+      expect(response.body.message).toBe('Username atau email sudah digunakan.');
     });
   });
 
