@@ -50,18 +50,8 @@ export const createUser = async (req, res) => {
   } = req.body;
 
   try {
-    if (!password || password.length < 6 || password.length > 10) {
-      return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
-    }
-
-    if (name && name.trim().length === 0) {
-      return res.status(400).json({ message: 'Nama tidak boleh kosong atau hanya berisi spasi.' });
-    }
-    if (name && !/^[a-zA-Z\s]+$/.test(name)) {
-      return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
-    }
-    if (name && name.length > 100) {
-      return res.status(400).json({ message: 'Nama maksimal 100 karakter.' });
+    if (!username) {
+      return res.status(400).json({ message: 'Username wajib diisi.' });
     }
 
     if (username) {
@@ -75,78 +65,107 @@ export const createUser = async (req, res) => {
       }
     }
 
-    if (!email) {
-      return res.status(400).json({ message: 'Email wajib diisi.' });
-    }
-    if (email.length > 254) {
-      return res.status(400).json({ message: 'Email terlalu panjang.' });
-    }
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Format email tidak valid.' });
+    if (!password || password.length < 6 || password.length > 10) {
+      return res.status(400).json({ message: 'Password harus memiliki 6 hingga 10 karakter.' });
     }
 
-    if (phone) {
-      if (!/^[0-9]+$/.test(phone)) {
-        return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
+    if (role === 'user') {
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ message: 'Nama tidak boleh kosong.' });
       }
-      if (phone.length < 10 || phone.length > 13) {
-        return res.status(400).json({ message: 'Nomor telepon harus memiliki 10 hingga 13 digit.' });
+      if (name && !/^[a-zA-Z\s]+$/.test(name)) {
+        return res.status(400).json({ message: 'Nama hanya boleh berisi huruf dan spasi.' });
       }
-    }
-
-    if (internship_start) {
-      const start = moment(internship_start);
-      if (start.day() === 0 || start.day() === 6) {
-        return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
-      }
-    }
-
-    if (internship_end) {
-      const end = moment(internship_end);
-      if (end.day() === 0 || end.day() === 6) {
-        return res.status(400).json({ message: 'Tanggal selesai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
-      }
-    }
-
-    if (internship_start && internship_end) {
-      const start = moment(internship_start);
-      const end = moment(internship_end);
-
-      if (start.isAfter(end)) {
-        return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+      if (name && name.length > 100) {
+        return res.status(400).json({ message: 'Nama maksimal 100 karakter.' });
       }
 
-      const maxEndDate = start.clone().add(6, 'months');
-      if (end.isAfter(maxEndDate)) {
-        return res.status(400).json({ message: 'Durasi magang tidak boleh lebih dari 6 bulan.' });
+      if (!email) {
+        return res.status(400).json({ message: 'Email wajib diisi.' });
+      }
+      if (email.length > 254) {
+        return res.status(400).json({ message: 'Email terlalu panjang.' });
+      }
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Format email tidak valid.' });
+      }
+
+      if (phone) {
+        if (!/^[0-9]+$/.test(phone)) {
+          return res.status(400).json({ message: 'Nomor telepon hanya boleh berisi angka.' });
+        }
+        if (phone.length < 10 || phone.length > 13) {
+          return res.status(400).json({ message: 'Nomor telepon harus memiliki 10 hingga 13 digit.' });
+        }
+      }
+
+      if (!internship_start) {
+        return res.status(400).json({ message: 'Tanggal mulai magang wajib diisi untuk peserta.' });
+      }
+      if (!internship_end) {
+        return res.status(400).json({ message: 'Tanggal selesai magang wajib diisi untuk peserta.' });
+      }
+
+      if (internship_start) {
+        const start = moment(internship_start);
+        if (start.day() === 0 || start.day() === 6) {
+          return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+        }
+      }
+
+      if (internship_end) {
+        const end = moment(internship_end);
+        if (end.day() === 0 || end.day() === 6) {
+          return res.status(400).json({ message: 'Tanggal selesai magang tidak boleh jatuh pada hari Sabtu atau Minggu.' });
+        }
+      }
+
+      if (internship_start && internship_end) {
+        const start = moment(internship_start);
+        const end = moment(internship_end);
+
+        if (start.isAfter(end)) {
+          return res.status(400).json({ message: 'Tanggal mulai tidak boleh melebihi tanggal selesai.' });
+        }
+
+        const maxEndDate = start.clone().add(6, 'months');
+        if (end.isAfter(maxEndDate)) {
+          return res.status(400).json({ message: 'Durasi magang tidak boleh lebih dari 6 bulan.' });
+        }
+      }
+
+      const today = moment.tz(TIMEZONE).startOf('day');
+      if (internship_start && moment(internship_start).isBefore(today)) {
+        return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh tanggal yang sudah lewat.' });
       }
     }
 
-    const today = moment.tz(TIMEZONE).startOf('day');
-    if (internship_start && moment(internship_start).isBefore(today)) {
-      return res.status(400).json({ message: 'Tanggal mulai magang tidak boleh tanggal yang sudah lewat.' });
+    const duplicateQuery = [{ username }];
+    if (email) {
+      duplicateQuery.push({ email });
     }
 
-    const user = await User.findOne({ $or: [{ username }, { email }] });
-    if (user) return res.status(400).json({ message: 'Username or email already exists' });
+    const user = await User.findOne({ $or: duplicateQuery });
+    if (user) return res.status(400).json({ message: 'Username atau email sudah digunakan.' });
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
     const newUser = new User({
-      name,
+      name: name || 'Admin',
       username,
       password_hash,
-      email,
-      phone,
+      email: email || null,
+      phone: phone || null,
       role,
-      internship_start,
-      internship_end,
+      internship_start: role === 'user' ? internship_start : null,
+      internship_end: role === 'user' ? internship_end : null,
     });
 
     await newUser.save();
     res.status(201).json({ message: 'User created successfully', userId: newUser._id });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
