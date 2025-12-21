@@ -17,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use('/api', announcementRoutes);
 
-describe('Announcement Controller - White Box Test', () => {
+describe('Announcement Controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
